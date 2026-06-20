@@ -1,4 +1,4 @@
-package br.com.gogather.framework.security.jwt;
+package gogather.framework.security.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

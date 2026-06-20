@@ -1,10 +1,9 @@
-package br.com.gogather.framework.security.config;
+package gogather.framework.security.config;
 
-import br.com.gogather.framework.security.jwt.JwtAuthenticationFilter;
-import br.com.gogather.framework.security.jwt.JwtProperties;
-import br.com.gogather.framework.security.jwt.TokenService;
+import gogather.framework.security.jwt.JwtAuthenticationFilter;
+import gogather.framework.security.jwt.JwtProperties;
+import gogather.framework.security.jwt.TokenService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
