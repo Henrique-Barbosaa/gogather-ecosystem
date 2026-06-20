@@ -30,7 +30,7 @@ public class GroupMembershipOrchestrator {
 
         validationStrategy.validate(group, inviter, invitee);
 
-        group.addPendindParticipant(invitee, inviter);
+        group.addPendingParticipant(invitee, inviter);
 
         dataProvider.save(group);
     }
