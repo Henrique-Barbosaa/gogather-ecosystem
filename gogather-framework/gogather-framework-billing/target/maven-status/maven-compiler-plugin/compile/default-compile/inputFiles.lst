@@ -1,6 +1,0 @@
-/home/pedro/Documentos/gogather-ecosystem/gogather-framework/gogather-framework-billing/src/main/java/gogather/framework/billing/autoconfigure/BillingAutoConfiguration.java
-/home/pedro/Documentos/gogather-ecosystem/gogather-framework/gogather-framework-billing/src/main/java/gogather/framework/billing/core/ExpenseSplitStrategy.java
-/home/pedro/Documentos/gogather-ecosystem/gogather-framework/gogather-framework-billing/src/main/java/gogather/framework/billing/dto/Contribution.java
-/home/pedro/Documentos/gogather-ecosystem/gogather-framework/gogather-framework-billing/src/main/java/gogather/framework/billing/dto/DebtDistribution.java
-/home/pedro/Documentos/gogather-ecosystem/gogather-framework/gogather-framework-billing/src/main/java/gogather/framework/billing/dto/ParticipantValue.java
-/home/pedro/Documentos/gogather-ecosystem/gogather-framework/gogather-framework-billing/src/main/java/gogather/framework/billing/strategies/SimpleEqualSplitStrategy.java

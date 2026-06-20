@@ -1,4 +1,10 @@
 /.github
-/target
-/.vscode
-/.idea
+target/
+.vscode/
+.idea/
+.project
+.classpath
+.settings/
+.factorypath
+*.iml
+.DS_Store

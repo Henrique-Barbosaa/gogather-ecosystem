@@ -1,6 +1,0 @@
-gogather/framework/billing/dto/DebtDistribution.class
-gogather/framework/billing/autoconfigure/BillingAutoConfiguration.class
-gogather/framework/billing/strategies/SimpleEqualSplitStrategy.class
-gogather/framework/billing/dto/ParticipantValue.class
-gogather/framework/billing/core/ExpenseSplitStrategy.class
-gogather/framework/billing/dto/Contribution.class
