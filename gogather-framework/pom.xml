@@ -20,6 +20,7 @@
         <module>gogather-framework-core</module>
         <module>gogather-framework-billing</module>
         <module>gogather-framework-security</module>
+        <module>gogather-framework-group</module>
     </modules>
 
     <dependencies>
