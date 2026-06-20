@@ -1,4 +1,4 @@
-package br.com.gogather.framework.security.jwt;
+package gogather.framework.security.jwt;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

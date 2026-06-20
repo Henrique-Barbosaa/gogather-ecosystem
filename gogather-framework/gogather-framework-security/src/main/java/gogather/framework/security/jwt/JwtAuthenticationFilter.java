@@ -1,4 +1,4 @@
-package br.com.gogather.framework.security.jwt;
+package gogather.framework.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
