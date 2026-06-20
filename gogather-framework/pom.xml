@@ -11,10 +11,15 @@
     </parent>
 
     <artifactId>gogather-framework</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>GoGather Framework</name>
     <description>Core unificado para as aplicações</description>
+
+    <modules>
+        <module>gogather-framework-core</module>
+        <module>gogather-framework-billing</module>
+    </modules>
 
     <dependencies>
         <dependency>
