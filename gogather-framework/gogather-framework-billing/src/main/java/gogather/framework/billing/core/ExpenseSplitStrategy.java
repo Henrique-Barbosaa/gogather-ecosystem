@@ -4,6 +4,7 @@ import java.util.List;
 
 import gogather.framework.billing.dto.Contribution;
 import gogather.framework.billing.dto.DebtDistribution;
+import gogather.framework.core.Participant;
 
 public interface ExpenseSplitStrategy {
 

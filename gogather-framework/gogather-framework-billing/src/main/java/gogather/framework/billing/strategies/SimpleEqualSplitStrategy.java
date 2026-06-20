@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import gogather.framework.billing.core.ExpenseSplitStrategy;
-import gogather.framework.billing.core.Participant;
 import gogather.framework.billing.dto.Contribution;
 import gogather.framework.billing.dto.DebtDistribution;
 import gogather.framework.billing.dto.ParticipantValue;
+import gogather.framework.core.Participant;
 
 public class SimpleEqualSplitStrategy implements ExpenseSplitStrategy {
 

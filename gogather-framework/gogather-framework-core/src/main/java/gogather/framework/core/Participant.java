@@ -1,4 +1,4 @@
-package gogather.framework.billing.core;
+package gogather.framework.core;
 
 public interface Participant {
     String getIdentifier();
