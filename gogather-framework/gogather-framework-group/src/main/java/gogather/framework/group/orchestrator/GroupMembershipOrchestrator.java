@@ -1,9 +1,10 @@
-package gogather.framework.group.frozen;
+package gogather.framework.group.orchestrator;
 
 import gogather.framework.core.Group;
 import gogather.framework.core.Participant;
 import gogather.framework.group.core.GroupDataProvider;
 import gogather.framework.group.core.GroupInviteValidationStrategy;
+import gogather.framework.group.exception.UserAlreadyInGroupException;
 
 public class GroupMembershipOrchestrator {
     private final GroupDataProvider dataProvider;
@@ -24,7 +25,7 @@ public class GroupMembershipOrchestrator {
         Participant inviter = dataProvider.findMember(inviterId);
 
         if (group.hasMember(invitee.getIdentifier())) {
-            throw new IllegalStateException("Esse usuário já está no rolê ou já foi convidado.");
+            throw new UserAlreadyInGroupException("User is already a member of the group or has a pending invitation.");
         }
 
         validationStrategy.validate(group, inviter, invitee);

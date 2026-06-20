@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 import gogather.framework.group.core.GroupDataProvider;
 import gogather.framework.group.core.GroupInviteValidationStrategy;
-import gogather.framework.group.frozen.GroupMembershipOrchestrator;
+import gogather.framework.group.orchestrator.GroupMembershipOrchestrator;
 
 @Configuration
 public class GroupAutoConfiguration {
