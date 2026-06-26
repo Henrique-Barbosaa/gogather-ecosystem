@@ -2,15 +2,12 @@ package gogather.framework.group.jpa;
 
 import gogather.framework.group.jpa.domain.GroupMember;
 import gogather.framework.group.jpa.domain.GroupRole;
-import gogather.framework.group.jpa.repository.GroupMemberRepository;
 import gogather.framework.group.jpa.service.GroupService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,9 +19,6 @@ public class GroupServiceTest {
     private GroupService groupService;
 
     @Autowired
-    private GroupMemberRepository groupMemberRepository;
-
-    @Autowired
     private EntityManager entityManager;
 
     @Test
@@ -34,7 +28,7 @@ public class GroupServiceTest {
         criador.setEmail("flawbert@teste.com");
         entityManager.persist(criador); // Salva o usuário no banco em memória
 
-        //cria o grupo cru
+        // cria o grupo cru
         MockGroup novoGrupo = new MockGroup();
         novoGrupo.setName("Rolê do Fim de Semana");
         novoGrupo.setDescription("Teste do framework");
@@ -47,10 +41,14 @@ public class GroupServiceTest {
         assertEquals(8, grupoSalvo.getInviteCode().length(), "O código deve ter 8 caracteres");
         assertTrue(grupoSalvo.getInviteCode().matches("[A-Z0-9]+"), "O código deve ser alfanumérico em maiúsculo");
 
-        Optional<GroupMember> associacao = groupMemberRepository.findByGroupIdAndUserId(grupoSalvo.getId(), criador.getId());
-        assertTrue(associacao.isPresent(), "Deveria existir um registro na tabela group_member");
-        assertEquals(GroupRole.ADMIN, associacao.get().getRole(), "O criador tem que ser ADMIN absoluto");
+        // Nova Validação (Focada na Entidade e Cascata)
+        assertNotNull(grupoSalvo.getMembers(), "A lista de membros foi inicializada");
+        assertEquals(1, grupoSalvo.getMembers().size(), "Deveria existir exatamente 1 membro no grupo");
 
-        System.out.println("SUCESSO! Código gerado: " + grupoSalvo.getInviteCode());
+        GroupMember associacao = grupoSalvo.getMembers().get(0);
+        assertEquals(criador.getId(), associacao.getUser().getId(), "O membro associado deve ser o criador do grupo");
+        assertEquals(GroupRole.ADMIN, associacao.getRole(), "O criador tem que ser ADMIN absoluto");
+
+        System.out.println("✅ SUCESSO! Código gerado: " + grupoSalvo.getInviteCode());
     }
 }

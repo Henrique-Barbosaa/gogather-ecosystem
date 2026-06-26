@@ -1,14 +1,17 @@
 package gogather.framework.group.jpa.domain;
 
 import gogather.framework.core.Group;
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import gogather.framework.core.Participant;
+import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "fw_base_group")
 @Inheritance(strategy = InheritanceType.JOINED)
-// InheritanceType.JOINED dria uma tabela para os dados comuns e as aplicações filhas terão tabelas só com os dados especificos
+// InheritanceType.JOINED cria uma tabela para os dados comuns e as aplicações filhas terão tabelas só com os dados específicos
 public abstract class BaseGroup implements Group {
     
     @Id
@@ -26,6 +29,10 @@ public abstract class BaseGroup implements Group {
 
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // 1. Cria a lista de membros gerenciada em Cascata!
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GroupMember> members = new ArrayList<>();
 
     public Long getId() { 
         return id; 
@@ -67,6 +74,14 @@ public abstract class BaseGroup implements Group {
         this.createdAt = createdAt; 
     }
 
+    public List<GroupMember> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<GroupMember> members) {
+        this.members = members;
+    }
+
     @Override
     public String getIdentifier() {
         return this.inviteCode;
@@ -74,11 +89,23 @@ public abstract class BaseGroup implements Group {
 
     @Override
     public boolean hasMember(String participantIdentifier) {
-        return false;
+        if (this.members == null) return false;
+        
+        return this.members.stream()
+                .anyMatch(m -> m.getUser().getId().toString().equals(participantIdentifier));
     }
 
     @Override
     public void addPendingParticipant(Participant participant, Participant addedBy) {
-        //essa lógica será preenchida futuramente caso a aplicação exija aprovação de administradores para entrar.
+        // O Orquestrador chama isso, e a própria Entidade cria a relação para o JPA salvar
+        GroupMember novoMembro = new GroupMember();
+        novoMembro.setGroup(this);
+        novoMembro.setUser((BaseUser) participant);
+        novoMembro.setRole(GroupRole.MEMBER);
+        
+        if (this.members == null) {
+            this.members = new ArrayList<>();
+        }
+        this.members.add(novoMembro);
     }
 }

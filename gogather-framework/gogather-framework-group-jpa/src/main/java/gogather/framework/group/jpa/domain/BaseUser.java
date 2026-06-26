@@ -1,11 +1,13 @@
 package gogather.framework.group.jpa.domain;
 
+import gogather.framework.core.Participant;
+
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "fw_base_user")
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class BaseUser {
+public abstract class BaseUser implements Participant {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,6 +17,11 @@ public abstract class BaseUser {
     
     @Column(unique = true)
     private String email;
+
+    @Override
+    public String getIdentifier() {
+        return this.id != null ? this.id.toString() : null;
+    }
 
     public Long getId() { 
         return id; 
