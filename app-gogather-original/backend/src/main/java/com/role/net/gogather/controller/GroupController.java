@@ -11,6 +11,8 @@ import com.role.net.gogather.dto.expense.ExpenseResponse;
 import com.role.net.gogather.dto.group.CreateGroupRequest;
 import com.role.net.gogather.dto.group.GroupDetailsResponse;
 import com.role.net.gogather.dto.group.GroupResponse;
+import com.role.net.gogather.dto.group.RemoveStopsRequest;
+import com.role.net.gogather.dto.group.ReorderStopsRequest;
 
 import jakarta.validation.Valid;
 
@@ -143,5 +145,25 @@ public class GroupController {
 
         List<ExpenseResponse> expenses = expenseService.getGroupExpenses(groupId, user.getId());
         return ResponseEntity.ok(expenses);
+    }
+
+    @PutMapping("/{groupId}/stops/reorder")
+    public ResponseEntity<Void> reorderStops(
+        @AuthenticationPrincipal User user,
+        @PathVariable UUID groupId,
+        @Valid @RequestBody ReorderStopsRequest request
+    ) {
+        groupService.reorderStops(groupId, request.stopIdsInOrder(), user);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{groupId}/stops/delete-batch")
+    public ResponseEntity<Void> removeStopsBatch(
+        @AuthenticationPrincipal User user,
+        @PathVariable UUID groupId,
+        @Valid @RequestBody RemoveStopsRequest request
+    ) {
+        groupService.removeStopsBatch(groupId, request.stopIdsToRemove(), user);
+        return ResponseEntity.ok().build();
     }
 }
