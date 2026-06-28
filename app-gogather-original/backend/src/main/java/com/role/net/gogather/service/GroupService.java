@@ -6,6 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import gogather.framework.sequence.SequenceService;
+
 import com.role.net.gogather.dto.group.CreateGroupRequest;
 import com.role.net.gogather.dto.group.GroupDetailsResponse;
 import com.role.net.gogather.dto.group.GroupResponse;
@@ -29,11 +31,13 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final PlacesApiService placesApiService;
+    private final SequenceService sequenceService;
 
-    public GroupService(GroupRepository groupRepository, UserRepository userRepository, PlacesApiService placesApiService) {
+    public GroupService(GroupRepository groupRepository, UserRepository userRepository, PlacesApiService placesApiService, SequenceService sequenceService) {
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
         this.placesApiService = placesApiService;
+        this.sequenceService = sequenceService;
     }
 
     @Transactional
@@ -49,20 +53,21 @@ public class GroupService {
 
         Group savedGroup = groupRepository.save(group);
 
-		request.stops().forEach(stopRequest -> {
-            EventStop stop = EventStop.builder()
-				.name(stopRequest.name())
-				.latitude(stopRequest.latitude())
-				.longitude(stopRequest.longitude())
-				.category(stopRequest.category())
-				.stopOrder(stopRequest.order())
-				.city(stopRequest.city())
-				.state(stopRequest.state())
-				.group(savedGroup)
-				.build();
+		request.stops().stream()
+            .sorted((s1, s2) -> Integer.compare(s1.order(), s2.order()))
+            .forEach(stopRequest -> {
+                EventStop stop = EventStop.builder()
+                    .name(stopRequest.name())
+                    .latitude(stopRequest.latitude())
+                    .longitude(stopRequest.longitude())
+                    .category(stopRequest.category())
+                    .city(stopRequest.city())
+                    .state(stopRequest.state())
+                    .group(savedGroup)
+                    .build();
 
-            savedGroup.getEventStops().add(stop);
-        });
+                sequenceService.appendItem(stop, savedGroup.getEventStops());
+            });
 
         GroupMember adminMember = GroupMember.builder()
 			.group(savedGroup)
@@ -262,21 +267,64 @@ public class GroupService {
             }
         }
 
-        int nextOrder = group.getEventStops().size() + 1;
-
         EventStop stop = EventStop.builder()
             .name(name)
             .latitude(latitude)
             .longitude(longitude)
             .category("Recomendação da IA")
-            .stopOrder(nextOrder)
             .city(city)
             .state(state)
             .placeId(placeId)
             .group(group)
             .build();
 
-        group.getEventStops().add(stop);
+        sequenceService.appendItem(stop, group.getEventStops());
+        groupRepository.save(group);
+    }
+
+    @Transactional
+    public void reorderStops(UUID groupId, List<UUID> newOrderOfIds, User user) {
+        Group group = groupRepository.findByExternalId(groupId)
+            .orElseThrow(() -> new ResourceNotFoundException("Rolê não encontrado."));
+
+        boolean isMember = group.getMembers().stream()
+            .anyMatch(member -> member.getUser().getId().equals(user.getId()));
+        
+        if (!isMember) {
+            throw new UserNotAGroupMemberException("Usuário não faz parte do rolê.");
+        }
+
+        List<EventStop> stops = group.getEventStops();
+
+        for (int i = 0; i < newOrderOfIds.size(); i++) {
+            UUID targetId = newOrderOfIds.get(i);
+            stops.stream()
+                 .filter(stop -> stop.getExternalId().equals(targetId))
+                 .findFirst()
+                 .ifPresent(stop -> stop.setSequenceOrder(newOrderOfIds.indexOf(targetId))); 
+        }
+
+        sequenceService.normalizeSequence(stops);
+        groupRepository.save(group);
+    }
+
+    @Transactional
+    public void removeStopsBatch(UUID groupId, List<UUID> stopIdsToRemove, User user) {
+        Group group = groupRepository.findByExternalId(groupId)
+            .orElseThrow(() -> new ResourceNotFoundException("Rolê não encontrado."));
+
+        boolean isMember = group.getMembers().stream()
+            .anyMatch(member -> member.getUser().getId().equals(user.getId()));
+        
+        if (!isMember) {
+            throw new UserNotAGroupMemberException("Usuário não faz parte do rolê.");
+        }
+
+        List<EventStop> stops = group.getEventStops();
+        
+        stops.removeIf(stop -> stopIdsToRemove.contains(stop.getExternalId()));
+
+        sequenceService.normalizeSequence(stops);
         groupRepository.save(group);
     }
 }

@@ -1,5 +1,7 @@
 package com.role.net.gogather.entity;
 
+import gogather.framework.sequence.SequencedItem;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,7 +21,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EventStop extends BaseEntity {
+public class EventStop extends BaseEntity implements SequencedItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "group_id", nullable = false)
@@ -45,4 +47,14 @@ public class EventStop extends BaseEntity {
 
     @Column(name = "place_id")
     private String placeId;
+
+    @Override
+    public Integer getSequenceOrder() {
+        return this.stopOrder;
+    }
+
+    @Override
+    public void setSequenceOrder(Integer order) {
+        this.stopOrder = order;
+    }
 }
