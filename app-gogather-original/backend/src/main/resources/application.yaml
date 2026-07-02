@@ -2,11 +2,11 @@ spring:
   application:
     name: GoGather
   config:
-    import: classpath:secret.yaml
+    import: optional:classpath:secret.yaml
   datasource:
     url: jdbc:postgresql://localhost:5432/GoGather
-    username: ${db.username}
-    password: ${db.password}
+    username: ${db.username:postgres}
+    password: ${db.password:password}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -18,13 +18,13 @@ spring:
   api:
     security:
       token:
-        secret: ${token.secret}
+        secret: ${token.secret:my-default-secret-key-for-jwt-tokens-that-needs-to-be-long-enough-256-bits}
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY}
+      api-key: ${OPENAI_API_KEY:dummy-key}
       chat:
         options:
           model: gpt-4o-mini
 google:
   places:
-    api-key: ${GOOGLE_PLACES_API_KEY}
+    api-key: ${GOOGLE_PLACES_API_KEY:dummy-key}

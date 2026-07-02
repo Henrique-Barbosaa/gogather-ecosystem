@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: GoGather-Test
+  datasource:
+    url: jdbc:h2:mem:gogather_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  api:
+    security:
+      token:
+        secret: my-secret-key-for-testing-only-with-at-least-256-bits-length-1234567890
+  ai:
+    openai:
+      api-key: dummy-key
+google:
+  places:
+    api-key: dummy-key
