@@ -6,6 +6,8 @@ import java.util.Set;
 import com.role.net.gogather.enums.GroupMemberStatus;
 import com.role.net.gogather.enums.GroupRole;
 
+import gogather.framework.core.Participant;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,7 +30,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GroupMember extends BaseEntity {
+public class GroupMember extends BaseEntity implements Participant {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
@@ -61,4 +63,9 @@ public class GroupMember extends BaseEntity {
     @Builder.Default
     @OneToMany(mappedBy = "creditor")
     private Set<ExpenseDistribution> expensesReceived = new HashSet<>();
+
+    @Override
+    public String getIdentifier() {
+        return this.getId() != null ? this.getId().toString() : null;
+    }
 }

@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import gogather.framework.billing.orchestrator.BillingOrchestrator;
+
 import com.role.net.gogather.dto.expense.ExpenseAutoCreationRequest;
 import com.role.net.gogather.dto.expense.ExpenseContributionRequest;
 import com.role.net.gogather.dto.expense.ExpenseDistributionRequest;
@@ -39,20 +41,21 @@ public class ExpenseService {
     private final ExpenseContributionRepository expenseContributionRepository;
     private final ExpenseDistributionRepository expenseDistributionRepository;
     private final GroupRepository groupRepository;
+    private final BillingOrchestrator billingOrchestrator;
 
     public ExpenseService(
         ExpenseRepository expenseRepository,
         ExpenseContributionRepository expenseContributionRepository,
         ExpenseDistributionRepository expenseDistributionRepository,
-        GroupRepository groupRepository
+        GroupRepository groupRepository,
+        BillingOrchestrator billingOrchestrator
     ) {
         this.expenseRepository = expenseRepository;
         this.expenseContributionRepository = expenseContributionRepository;
         this.expenseDistributionRepository = expenseDistributionRepository;
         this.groupRepository = groupRepository;
+        this.billingOrchestrator = billingOrchestrator;
     }
-
-    private record MemberValue(GroupMember member, Long cents) {}
 
     public Expense createAuto(
         User requester,
@@ -79,21 +82,15 @@ public class ExpenseService {
         expense.setGroup(group);
         expense.setStatus(ExpenseStatus.PENDING);
 
-        int membersAmount = group.getMembers().size();
         Long valueInCents = toCents(request.totalValue());
-        Long individualQuota = valueInCents / membersAmount;
-        int remainingCents = Math.toIntExact(valueInCents % membersAmount);
-
         expense.setTotalValue(valueInCents);
 
-        List<MemberValue> receivers = new ArrayList<>();
-        List<MemberValue> payers = new ArrayList<>();
-
-        buildLists(receivers, payers, group, request, individualQuota, remainingCents);
-        putDistributionsAuto(receivers, payers, expense);
         putContributionsAuto(expense, group.getMembers(), request.contributions());
+        expense = expenseRepository.save(expense);
 
-        return expenseRepository.save(expense);
+        billingOrchestrator.settleExpense(expense.getId().toString());
+
+        return expense;
     }
 
     public Expense createManual(
@@ -249,101 +246,6 @@ public class ExpenseService {
                     creditor,
                     expense)
             );
-        }
-    }
-
-    private void putDistributionsAuto(
-        List<MemberValue> receivers,
-        List<MemberValue> payers,
-        Expense expense
-    ) {
-        int payersIndex = 0;
-        int receiversIndex = 0;
-
-        while(receiversIndex < receivers.size() && payersIndex < payers.size()) {
-
-            Long receiverRemaining = receivers.get(receiversIndex).cents();
-            Long payerRemaining = payers.get(payersIndex).cents();
-            GroupMember payerMember = payers.get(payersIndex).member();
-            GroupMember receieverMember = receivers.get(receiversIndex).member();
-
-            if(payerRemaining <= receiverRemaining) {
-                expense.getExpenseDistributions().add(
-                    new ExpenseDistribution(
-                        payerRemaining,
-                        SplitStatus.PENDING,
-                        payerMember,
-                        receieverMember,
-                        expense
-                    )
-                );
-                if(payerRemaining.equals(receiverRemaining)) {
-                    receiversIndex++;
-                    payersIndex++;
-                } else {
-                    payersIndex++;
-                    receivers.set(
-                        receiversIndex,
-                        new MemberValue(
-                            receivers.get(receiversIndex).member(),
-                            receiverRemaining - payerRemaining
-                        )
-                    );
-                }
-            } else {
-                expense.getExpenseDistributions().add(
-                    new ExpenseDistribution(
-                        receiverRemaining,
-                        SplitStatus.PENDING,
-                        payerMember,
-                        receieverMember,
-                        expense
-                    )
-                );
-                receiversIndex++;
-                payers.set(
-                    payersIndex,
-                    new MemberValue(
-                        payers.get(payersIndex).member(),
-                        payerRemaining - receiverRemaining
-                    )
-                );
-            }
-        }
-    }
-
-    private void buildLists(
-        List<MemberValue> receivers,
-        List<MemberValue> payers,
-        Group group,
-        ExpenseAutoCreationRequest request,
-        Long individualQuota,
-        int remainingCents
-    ) {
-        Map<UUID, Long> paidAmount = request.contributions().stream()
-            .collect(Collectors.toMap(
-                ExpenseContributionRequest::payerExternalId,
-                c -> Math.round(c.value() * 100),
-                Long::sum
-            ));
-
-        for(GroupMember member : group.getMembers()) {
-
-            Long memberQuota = individualQuota;
-
-            if(remainingCents > 0) {
-                memberQuota++;
-                remainingCents--;
-            }
-
-            Long paidValue = paidAmount.getOrDefault(member.getUser().getExternalId(), 0L);
-            Long balance = paidValue - memberQuota;
-
-            if(balance > 0) {
-                receivers.add(new MemberValue(member, Math.abs(balance)));
-            } else if(balance < 0) {
-                payers.add(new MemberValue(member, Math.abs(balance)));
-            }
         }
     }
 
