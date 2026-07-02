@@ -23,6 +23,7 @@
         <module>gogather-framework-group</module>
         <module>gogather-framework-group-jpa</module>
         <module>gogather-framework-group-web</module>
+        <module>gogather-framework-polling</module>
     </modules>
 
     <dependencies>
