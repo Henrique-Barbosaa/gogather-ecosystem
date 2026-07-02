@@ -12,6 +12,7 @@ import com.role.net.gogather.repository.PollVoteRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import gogather.framework.polling.orchestrator.PollingOrchestrator;
 
 import java.util.UUID;
 import java.util.Optional;
@@ -22,18 +23,21 @@ import jakarta.persistence.PersistenceContext;
 @Service
 public class PollService {
 
+    private final PollingOrchestrator pollingOrchestrator;
     private final PollOptionRepository pollOptionRepository;
     private final PollRepository pollRepository;
-    private final PollVoteRepository pollVoteRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public PollService(PollOptionRepository pollOptionRepository, PollRepository pollRepository, PollVoteRepository pollVoteRepository, SimpMessagingTemplate messagingTemplate) {
+    public PollService(PollingOrchestrator pollingOrchestrator, 
+                       PollOptionRepository pollOptionRepository, 
+                       PollRepository pollRepository, 
+                       SimpMessagingTemplate messagingTemplate) {
+        this.pollingOrchestrator = pollingOrchestrator;
         this.pollOptionRepository = pollOptionRepository;
         this.pollRepository = pollRepository;
-        this.pollVoteRepository = pollVoteRepository;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -44,28 +48,12 @@ public class PollService {
 
         Poll poll = targetOption.getPoll();
 
-        Optional<PollVote> existingVoteOpt = pollVoteRepository.findByPollIdAndUserId(poll.getId(), user.getId());
-
-        if (existingVoteOpt.isPresent()) {
-            PollVote existingVote = existingVoteOpt.get();
-            if (existingVote.getPollOption().getId().equals(optionId)) {
-                pollVoteRepository.delete(existingVote);
-                pollOptionRepository.decrementVote(optionId);
-            } else {
-                pollOptionRepository.decrementVote(existingVote.getPollOption().getId());
-                existingVote.setPollOption(targetOption);
-                pollVoteRepository.save(existingVote);
-                pollOptionRepository.incrementVote(optionId);
-            }
-        } else {
-            PollVote newVote = PollVote.builder()
-                .poll(poll)
-                .pollOption(targetOption)
-                .user(user)
-                .build();
-            pollVoteRepository.save(newVote);
-            pollOptionRepository.incrementVote(optionId);
-        }
+        // O Framework assume o controle (Princípio de Hollywood)
+        pollingOrchestrator.processVote(
+            poll.getId().toString(),
+            optionId.toString(),
+            user.getId().toString()
+        );
 
         entityManager.flush();
         entityManager.clear();
