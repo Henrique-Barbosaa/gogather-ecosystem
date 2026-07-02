@@ -19,6 +19,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import gogather.framework.chat.orchestrator.ChatOrchestrator;
+import gogather.framework.chat.dto.SendMessageCommand;
+import gogather.framework.chat.dto.ChatMessageDTO;
+
+import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Service
@@ -28,48 +34,39 @@ public class ChatService {
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final ChatOrchestrator chatOrchestrator;
 
     public ChatService(
             ChatMessageRepository chatMessageRepository,
             GroupRepository groupRepository,
             UserRepository userRepository,
-            ApplicationEventPublisher eventPublisher
+            ApplicationEventPublisher eventPublisher,
+            ChatOrchestrator chatOrchestrator
     ) {
         this.chatMessageRepository = chatMessageRepository;
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
+        this.chatOrchestrator = chatOrchestrator;
     }
 
     @Transactional
     public ChatMessage saveMessage(Long groupId, Long userId, ChatMessageRequest request) {
 
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found."));
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("requiresAi", request.requiresAiResponse());
 
-        User sender = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+        SendMessageCommand command = new SendMessageCommand(
+            groupId.toString(),
+            userId.toString(),
+            request.content(),
+            metadata
+        );
 
-        if (!groupRepository.isGroupMember(groupId, userId, GroupMemberStatus.ACTIVE)) {
-            throw new UserNotAGroupMemberException("You are not a member of this group.");
-        }
+        ChatMessageDTO savedDto = chatOrchestrator.processMessage(command);
 
-		ChatMessage message = ChatMessage.builder()
-				.group(group)
-				.sender(sender)
-				.content(request.content())
-				.type(MessageType.USER)
-				.build();
-
-        ChatMessage savedMessage = chatMessageRepository.save(message);
-
-		// o frontend envia um boolean dizendo se a mensagem requer resposta da IA
-		// depois vemos se é a melhor forma, mas acho que por enquanto está bom.
-        if (request.requiresAiResponse()) {
-            eventPublisher.publishEvent(new AiMentionEvent(groupId, request.content()));
-        }
-
-        return savedMessage;
+        return chatMessageRepository.findById(Long.parseLong(savedDto.messageId()))
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found after save"));
     }
 
 	@Transactional(readOnly = true)

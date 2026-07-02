@@ -24,6 +24,7 @@
         <module>gogather-framework-group-jpa</module>
         <module>gogather-framework-group-web</module>
         <module>gogather-framework-polling</module>
+        <module>gogather-framework-chat</module>
     </modules>
 
     <dependencies>
