@@ -82,16 +82,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(err);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<StandardErrorDTO> illegalArgument(
-        IllegalArgumentException e,
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+    public ResponseEntity<StandardErrorDTO> illegalArgumentOrState(
+        RuntimeException e,
         HttpServletRequest request
     ) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         StandardErrorDTO err = new StandardErrorDTO(
             Instant.now(),
             status.value(),
-            "Requisição inválida",
+            "Requisição ou estado inválido",
             e.getMessage(),
             request.getRequestURI()
         );

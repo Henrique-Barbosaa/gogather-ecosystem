@@ -27,4 +27,23 @@ public class Group extends BaseGroup {
 
     @Column(name = "max_travelers", nullable = false)
     private Integer maxTravelers = 30;
+
+    public void addMember(User user, gogather.framework.group.jpa.domain.GroupRole role) {
+        gogather.framework.group.jpa.domain.GroupMember member = new gogather.framework.group.jpa.domain.GroupMember();
+        member.setGroup(this);
+        member.setUser(user);
+        member.setRole(role);
+        if (getMembers() == null) {
+            setMembers(new java.util.ArrayList<>());
+        }
+        getMembers().add(member);
+    }
+
+    public void addMember(gogather.framework.group.jpa.domain.GroupMember member) {
+        member.setGroup(this);
+        if (getMembers() == null) {
+            setMembers(new java.util.ArrayList<>());
+        }
+        getMembers().add(member);
+    }
 }

@@ -1,4 +1,4 @@
-package com.role.net.tripmaker.service.provider;
+package com.role.net.tripmaker.provider;
 
 import com.role.net.tripmaker.entity.Group;
 import gogather.framework.core.Participant;

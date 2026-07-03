@@ -9,5 +9,4 @@ public record CreateGroupRequest(
     LocalDate startDate,
     LocalDate endDate,
     Integer maxTravelers
-) {
-}
+) {}

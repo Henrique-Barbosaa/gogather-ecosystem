@@ -8,7 +8,8 @@ public record UserResponse(
     String username,
     String name,
     String email,
-    LocalDate birthDate
+    LocalDate birthDate,
+    String pixKey
 ) {
     public static UserResponse from(User user) {
         return new UserResponse(
@@ -16,7 +17,8 @@ public record UserResponse(
             user.getUsername(),
             user.getName(),
             user.getEmail(),
-            user.getBirthDate()
+            user.getBirthDate(),
+            user.getPixInfo() != null ? user.getPixInfo().getPixKey() : null
         );
     }
 }
