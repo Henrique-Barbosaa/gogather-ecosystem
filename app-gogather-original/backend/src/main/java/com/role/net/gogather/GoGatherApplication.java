@@ -2,9 +2,22 @@ package com.role.net.gogather;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-@SpringBootApplication(scanBasePackages = "com.role.net")
+@SpringBootApplication(scanBasePackages = {
+    "com.role.net",
+    "gogather.framework.group.jpa"
+})
+@EntityScan(basePackages = {
+    "com.role.net.gogather.entity",
+    "gogather.framework.group.jpa.domain"
+})
+@EnableJpaRepositories(basePackages = {
+    "com.role.net.gogather.repository",
+    "gogather.framework.group.jpa.repository"
+})
 @EnableAsync
 public class GoGatherApplication {
 

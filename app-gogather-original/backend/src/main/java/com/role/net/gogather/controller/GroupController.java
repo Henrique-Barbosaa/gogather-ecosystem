@@ -4,9 +4,6 @@ import com.role.net.gogather.entity.Expense;
 import com.role.net.gogather.entity.Group;
 import com.role.net.gogather.entity.User;
 import com.role.net.gogather.service.ExpenseService;
-// Diferenciamos o Service do Framework e o Service da Aplicação (que cuida de paradas/despesas)
-import com.role.net.gogather.service.GroupService; 
-import gogather.framework.group.jpa.service.GroupService; // Service do Framework
 import gogather.framework.group.orchestrator.GroupMembershipOrchestrator;
 import gogather.framework.group.web.controller.AbstractGroupController;
 import gogather.framework.group.jpa.domain.BaseUser;
@@ -145,7 +142,7 @@ public class GroupController extends AbstractGroupController<Group, CreateGroupR
         @AuthenticationPrincipal User user,
         @PathVariable String inviteCode
     ) {
-        appGroupService.getGroupDetails(inviteCode, user.getId()); // Valida se é membro
+        appGroupService.getGroupDetails(inviteCode, user.getId());
         List<ExpenseResponse> expenses = expenseService.getGroupExpenses(inviteCode, user.getId());
         return ResponseEntity.ok(expenses);
     }
