@@ -1,0 +1,22 @@
+package com.role.net.roomiesapp.dto.user;
+
+import java.time.LocalDate;
+import com.role.net.roomiesapp.entity.User;
+
+public record UserResponse(
+    String id,
+    String username,
+    String displayName,
+    String email,
+    LocalDate birthDate
+) {
+    public static UserResponse from(User user) {
+        return new UserResponse(
+            user.getExternalId() != null ? user.getExternalId().toString() : String.valueOf(user.getId()),
+            user.getUsername(),
+            user.getDisplayName(),
+            user.getEmail(),
+            user.getBirthDate()
+        );
+    }
+}
