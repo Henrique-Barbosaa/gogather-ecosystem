@@ -34,6 +34,9 @@
             <artifactId>gogather-framework-billing</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>br.com.gogather</groupId>
             <artifactId>gogather-framework-polling</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
@@ -41,6 +44,12 @@
         <dependency>
             <groupId>br.com.gogather</groupId>
             <artifactId>gogather-framework-chat</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>br.com.gogather</groupId>
+            <artifactId>gogather-framework-security</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 

@@ -4,8 +4,8 @@ import com.role.net.gogather.entity.Expense;
 import com.role.net.gogather.entity.User;
 import com.role.net.gogather.service.ExpenseService;
 import com.role.net.gogather.service.GroupService;
-import com.role.net.gogather.config.JWTUserData;
 import com.role.net.gogather.dto.expense.ExpenseAutoCreationRequest;
+
 import com.role.net.gogather.dto.expense.ExpenseManualCreationRequest;
 import com.role.net.gogather.dto.expense.ExpenseResponse;
 import com.role.net.gogather.dto.group.CreateGroupRequest;

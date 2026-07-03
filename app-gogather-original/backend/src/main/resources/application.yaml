@@ -25,6 +25,13 @@ spring:
       chat:
         options:
           model: gpt-4o-mini
+
 google:
   places:
     api-key: ${GOOGLE_PLACES_API_KEY:dummy-key}
+
+framework:
+  security:
+    jwt:
+      secret: ${token.secret:my-default-secret-key-for-jwt-tokens-that-needs-to-be-long-enough-256-bits}
+      expiration-minutes: 20

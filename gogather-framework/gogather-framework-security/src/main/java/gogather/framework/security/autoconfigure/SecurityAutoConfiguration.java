@@ -27,9 +27,9 @@ import gogather.framework.security.orchestrator.SecurityOrchestrator;
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityAutoConfiguration {
 
-    @Bean
+    @Bean("frameworkTokenService")
     @ConditionalOnMissingBean
-    public TokenService tokenService(JwtProperties jwtProperties) {
+    public TokenService frameworkTokenService(JwtProperties jwtProperties) {
         return new TokenService(jwtProperties);
     }
 
