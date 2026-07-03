@@ -1,13 +1,12 @@
 package com.role.net.gogather.dto.group;
 
 import java.time.Instant;
-import java.util.UUID;
 
 public record GroupResponse(
-    UUID externalId,
+    String id,
     String name,
     String description,
     String inviteCode,
-  	Instant eventDate,
+    Instant eventDate,
     Integer memberAmount
 ) {}

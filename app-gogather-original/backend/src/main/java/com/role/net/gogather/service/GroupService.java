@@ -1,22 +1,18 @@
 package com.role.net.gogather.service;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import gogather.framework.sequence.SequenceService;
+import gogather.framework.group.jpa.domain.GroupRole;
 
-import com.role.net.gogather.dto.group.CreateGroupRequest;
 import com.role.net.gogather.dto.group.GroupDetailsResponse;
 import com.role.net.gogather.dto.group.GroupResponse;
 import com.role.net.gogather.entity.EventStop;
 import com.role.net.gogather.entity.Group;
-import com.role.net.gogather.entity.GroupMember;
 import com.role.net.gogather.entity.User;
-import com.role.net.gogather.enums.GroupMemberStatus;
-import com.role.net.gogather.enums.GroupRole;
 import com.role.net.gogather.exception.InvalidRequestException;
 import com.role.net.gogather.exception.ResourceNotFoundException;
 import com.role.net.gogather.exception.UserNotAGroupMemberException;
@@ -40,200 +36,76 @@ public class GroupService {
         this.sequenceService = sequenceService;
     }
 
-    @Transactional
-    public GroupResponse create(CreateGroupRequest request, Long userId) {
-        User adminUser = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        Group group = Group.builder()
-			.name(request.name())
-			.description(request.description())
-			.eventDate(request.date())
-			.build();
-
-        Group savedGroup = groupRepository.save(group);
-
-		request.stops().stream()
-            .sorted((s1, s2) -> Integer.compare(s1.order(), s2.order()))
-            .forEach(stopRequest -> {
-                EventStop stop = EventStop.builder()
-                    .name(stopRequest.name())
-                    .latitude(stopRequest.latitude())
-                    .longitude(stopRequest.longitude())
-                    .category(stopRequest.category())
-                    .city(stopRequest.city())
-                    .state(stopRequest.state())
-                    .group(savedGroup)
-                    .build();
-
-                sequenceService.appendItem(stop, savedGroup.getEventStops());
-            });
-
-        GroupMember adminMember = GroupMember.builder()
-			.group(savedGroup)
-			.user(adminUser)
-			.role(GroupRole.ADMIN)
-            .status(com.role.net.gogather.enums.GroupMemberStatus.ACTIVE)
-            .invitedBy(null)
-			.build();
-
-        savedGroup.getMembers().add(adminMember);
-
-        Group updatedGroup = groupRepository.save(savedGroup);
-
-        return new GroupResponse(
-			updatedGroup.getExternalId(),
-			updatedGroup.getName(),
-			updatedGroup.getDescription(),
-			updatedGroup.getInviteCode(),
-			updatedGroup.getEventDate(),
-			updatedGroup.getMembers().size()
-        );
+    public List<GroupResponse> getUserGroups(Long userId) {
+        return groupRepository.findGroupsByUserId(userId).stream()
+            .map(group -> new GroupResponse(
+                group.getInviteCode(),
+                group.getName(),
+                group.getDescription(),
+                group.getInviteCode(),
+                group.getEventDate(),
+                group.getMembers().size()
+            ))
+            .toList();
     }
 
-	public List<GroupResponse> getUserGroups(Long userId) {
-        return groupRepository.findGroupsByUserId(userId, GroupMemberStatus.ACTIVE).stream()
-			.map(group -> new GroupResponse(
-				group.getExternalId(),
-				group.getName(),
-				group.getDescription(),
-				group.getInviteCode(),
-				group.getEventDate(),
-				group.getMembers().size()
-			))
-			.toList();
-    }
-
-	@Transactional(readOnly = true)
-	public GroupDetailsResponse getGroupDetails(UUID externalId, Long userId) {
-        Group group = groupRepository.findByExternalId(externalId)
+    @Transactional(readOnly = true)
+    public GroupDetailsResponse getGroupDetails(String inviteCode, Long userId) {
+        Group group = groupRepository.findByInviteCode(inviteCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
 
-		System.out.println("DEBUG: Checking if user " + userId + " is member of group " + externalId.toString());
-        boolean isMember = groupRepository.isGroupMemberByExternalId(externalId, userId, GroupMemberStatus.ACTIVE);
-		System.out.println("DEBUG: User " + userId + " is member of group " + externalId.toString() + ": " + isMember);
+        boolean isMember = groupRepository.isGroupMemberByInviteCode(inviteCode, userId);
 
         if (!isMember) {
             throw new UserNotAGroupMemberException("User is not a member of this group");
         }
 
         List<GroupDetailsResponse.MemberDTO> members = group.getMembers().stream()
-			.map(member -> new GroupDetailsResponse.MemberDTO(
-				member.getUser().getExternalId(),
-				member.getUser().getUsername(),
-				member.getUser().getDisplayName(),
-				member.getRole(),
-				member.getUser().getEmail()
-			))
-			.toList();
+            .map(member -> new GroupDetailsResponse.MemberDTO(
+                member.getUser().getId().toString(),     // ID Universal
+                ((User) member.getUser()).getUsername(), // Cast para a classe User do GoGather
+                member.getUser().getName(),              // Nome fornecido pelo BaseUser
+                member.getRole().name(),                 // Retorna a role do Framework (ADMIN/MEMBER)
+                member.getUser().getEmail()              // Email do BaseUser
+            ))
+            .toList();
 
         List<GroupDetailsResponse.EventStopDTO> eventStops = group.getEventStops().stream()
-			.map(stop -> new GroupDetailsResponse.EventStopDTO(
-				stop.getName(),
-				stop.getLatitude(),
-				stop.getLongitude(),
-				stop.getCategory(),
-				stop.getStopOrder(),
-				stop.getCity(),
-				stop.getState(),
+            .map(stop -> new GroupDetailsResponse.EventStopDTO(
+                stop.getId() != null ? stop.getId().toString() : "",
+                stop.getName(),
+                stop.getLatitude(),
+                stop.getLongitude(),
+                stop.getCategory(),
+                stop.getStopOrder(),
+                stop.getCity(),
+                stop.getState(),
                 stop.getPlaceId()
-			))
-			.toList();
+            ))
+            .toList();
 
         return new GroupDetailsResponse(
-			group.getExternalId(),
-			group.getName(),
-			group.getDescription(),
-			group.getInviteCode(),
-			group.getCreatedAt(),
-			group.getEventDate(),
-			members,
-			eventStops
+            group.getInviteCode(),
+            group.getName(),
+            group.getDescription(),
+            group.getInviteCode(),
+            group.getCreatedAt(),
+            group.getEventDate(),
+            members,
+            eventStops
         );
     }
 
-	@Transactional
-    public void joinGroupByInviteCode(String inviteCode, User loggedInUser) {
+    @Transactional
+    public void addEventStopFromPlace(String inviteCode, String placeId, User adminUser) {
         Group group = groupRepository.findByInviteCode(inviteCode)
-            .orElseThrow(() -> new ResourceNotFoundException("Rolê não encontrado com esse código."));
-
-        boolean alreadyMember = group.getMembers().stream()
-            .anyMatch(member -> member.getUser().getId().equals(loggedInUser.getId()));
-
-        if (alreadyMember) {
-            throw new InvalidRequestException("Você já faz parte deste rolê!");
-        }
-
-        GroupMember newMember = new GroupMember();
-        newMember.setGroup(group);
-        newMember.setUser(loggedInUser);
-        newMember.setStatus(GroupMemberStatus.ACTIVE);
-        newMember.setInvitedBy(null);
-
-        newMember.setRole(GroupRole.MEMBER);
-
-        group.getMembers().add(newMember);
-        groupRepository.save(group);
-    }
-
-    @Transactional
-    public void inviteFriendToGroup(UUID groupId, UUID friendId, User loggedInUser) {
-        Group group = groupRepository.findByExternalId(groupId)
-            .orElseThrow(() -> new ResourceNotFoundException("Rolê não encontrado."));
-
-        User friend = userRepository.findByExternalId(friendId)
-            .orElseThrow(() -> new ResourceNotFoundException("Amigo não encontrado."));
-
-        // AFAZER verificar aqui no FriendshipRepository se eles realmente são amigos
-
-        boolean alreadyMember = group.getMembers().stream()
-            .anyMatch(member -> member.getUser().getExternalId().equals(friendId));
-
-        if (alreadyMember) {
-            throw new InvalidRequestException("Esse usuário já está no rolê ou já foi convidado.");
-        }
-
-        GroupMember newMember = new GroupMember();
-        newMember.setGroup(group);
-        newMember.setUser(friend);
-        newMember.setStatus(GroupMemberStatus.PENDING);
-        newMember.setInvitedBy(loggedInUser);
-
-        newMember.setRole(GroupRole.MEMBER);
-
-        group.getMembers().add(newMember);
-        groupRepository.save(group);
-    }
-
-    @Transactional
-    public void acceptGroupInvite(UUID groupId, User loggedInUser) {
-        Group group = groupRepository.findByExternalId(groupId)
-            .orElseThrow(() -> new ResourceNotFoundException("Rolê não encontrado."));
-
-        GroupMember invite = group.getMembers().stream()
-            .filter(member -> member.getUser().getId().equals(loggedInUser.getId()))
-            .findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException("Convite não encontrado."));
-
-        if (invite.getStatus() == GroupMemberStatus.ACTIVE) {
-            throw new InvalidRequestException("Você já faz parte deste rolê.");
-        }
-        invite.setStatus(GroupMemberStatus.ACTIVE);
-
-        groupRepository.save(group);
-    }
-
-    @Transactional
-    public void addEventStopFromPlace(UUID groupId, String placeId, User adminUser) {
-        Group group = groupRepository.findByExternalId(groupId)
             .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
 
-        GroupMember adminMember = group.getMembers().stream()
-            .filter(member -> member.getUser().getId().equals(adminUser.getId()))
-            .findFirst()
-            .orElseThrow(() -> new UserNotAGroupMemberException("User is not a member of this group"));
+        boolean isAdmin = group.getMembers().stream()
+            .anyMatch(member -> member.getUser().getId().equals(adminUser.getId()) 
+                             && member.getRole() == GroupRole.ADMIN);
 
-        if (adminMember.getRole() != GroupRole.ADMIN) {
+        if (!isAdmin) {
             throw new InvalidRequestException("Apenas administradores podem adicionar paradas ao roteiro.");
         }
 
@@ -242,7 +114,6 @@ public class GroupService {
         String name = placeDetails.path("displayName").path("text").asText();
         double latitude = placeDetails.path("location").path("latitude").asDouble();
         double longitude = placeDetails.path("location").path("longitude").asDouble();
-
         String city = null;
         String state = null;
 
@@ -283,12 +154,11 @@ public class GroupService {
     }
 
     @Transactional
-    public void reorderStops(UUID groupId, List<UUID> newOrderOfIds, User user) {
-        Group group = groupRepository.findByExternalId(groupId)
+    public void reorderStops(String inviteCode, List<Long> newOrderOfIds, User user) {
+        Group group = groupRepository.findByInviteCode(inviteCode)
             .orElseThrow(() -> new ResourceNotFoundException("Rolê não encontrado."));
 
-        boolean isMember = group.getMembers().stream()
-            .anyMatch(member -> member.getUser().getId().equals(user.getId()));
+        boolean isMember = groupRepository.isGroupMemberByInviteCode(inviteCode, user.getId());
         
         if (!isMember) {
             throw new UserNotAGroupMemberException("Usuário não faz parte do rolê.");
@@ -297,9 +167,9 @@ public class GroupService {
         List<EventStop> stops = group.getEventStops();
 
         for (int i = 0; i < newOrderOfIds.size(); i++) {
-            UUID targetId = newOrderOfIds.get(i);
+            Long targetId = newOrderOfIds.get(i);
             stops.stream()
-                 .filter(stop -> stop.getExternalId().equals(targetId))
+                 .filter(stop -> stop.getId().equals(targetId))
                  .findFirst()
                  .ifPresent(stop -> stop.setSequenceOrder(newOrderOfIds.indexOf(targetId))); 
         }
@@ -309,20 +179,18 @@ public class GroupService {
     }
 
     @Transactional
-    public void removeStopsBatch(UUID groupId, List<UUID> stopIdsToRemove, User user) {
-        Group group = groupRepository.findByExternalId(groupId)
+    public void removeStopsBatch(String inviteCode, List<Long> stopIdsToRemove, User user) {
+        Group group = groupRepository.findByInviteCode(inviteCode)
             .orElseThrow(() -> new ResourceNotFoundException("Rolê não encontrado."));
 
-        boolean isMember = group.getMembers().stream()
-            .anyMatch(member -> member.getUser().getId().equals(user.getId()));
+        boolean isMember = groupRepository.isGroupMemberByInviteCode(inviteCode, user.getId());
         
         if (!isMember) {
             throw new UserNotAGroupMemberException("Usuário não faz parte do rolê.");
         }
 
         List<EventStop> stops = group.getEventStops();
-        
-        stops.removeIf(stop -> stopIdsToRemove.contains(stop.getExternalId()));
+        stops.removeIf(stop -> stopIdsToRemove.contains(stop.getId()));
 
         sequenceService.normalizeSequence(stops);
         groupRepository.save(group);
