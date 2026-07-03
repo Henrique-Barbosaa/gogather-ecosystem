@@ -85,7 +85,7 @@ public class RoomiesGroupBillingIntegrationTest {
         household = groupRepository.save(household);
 
         // 4. Use framework GroupMembershipOrchestrator to invite Bob to the household
-        groupMembershipOrchestrator.inviteUserToGroup("ROOM2026", bob.getId().toString(), alice.getId().toString());
+        groupMembershipOrchestrator.joinGroup("ROOM2026", bob.getId().toString());
 
         // Verify Bob is now a member of the group
         Group updatedHousehold = groupRepository.findByInviteCode("ROOM2026").orElseThrow();

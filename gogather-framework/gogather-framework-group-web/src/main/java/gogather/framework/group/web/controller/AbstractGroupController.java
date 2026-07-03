@@ -36,7 +36,7 @@ public abstract class AbstractGroupController<T extends BaseGroup, REQ> {
         
         //princípio de hollywood: Passamos a responsabilidade para a black-box
         // O Orchestrator vai validar se o usuário já existe e disparar a estratégia de validação
-        orchestrator.inviteUserToGroup(inviteCode, invitee.getId().toString(), null);
+        orchestrator.joinGroup(inviteCode, invitee.getId().toString());
         
         return ResponseEntity.ok().build();
     }

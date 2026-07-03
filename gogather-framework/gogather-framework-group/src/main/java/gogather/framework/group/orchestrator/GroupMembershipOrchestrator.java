@@ -18,20 +18,30 @@ public class GroupMembershipOrchestrator {
         this.validationStrategy = validationStrategy;
     }
 
-    public void inviteUserToGroup(String groupId, String inviteeId, String inviterId) {
+    public void joinGroup(String inviteCode, String userId) {
+        Group group = dataProvider.findGroup(inviteCode);
+        Participant invitee = dataProvider.findMember(userId);
 
-        Group group = dataProvider.findGroup(groupId);
+        if (group.hasMember(invitee.getIdentifier())) {
+            throw new UserAlreadyInGroupException("User is already a member of the group.");
+        }
+
+        validationStrategy.validate(group, null, invitee);
+        group.addMember(invitee, null);
+        dataProvider.save(group);
+    }
+
+    public void inviteUserToGroup(String inviteCode, String inviteeId, String inviterId) {
+        Group group = dataProvider.findGroup(inviteCode);
         Participant invitee = dataProvider.findMember(inviteeId);
         Participant inviter = dataProvider.findMember(inviterId);
 
         if (group.hasMember(invitee.getIdentifier())) {
-            throw new UserAlreadyInGroupException("User is already a member of the group or has a pending invitation.");
+            throw new UserAlreadyInGroupException("User is already a member of the group.");
         }
 
         validationStrategy.validate(group, inviter, invitee);
-
-        group.addPendingParticipant(invitee, inviter);
-
+        group.addMember(invitee, inviter);
         dataProvider.save(group);
     }
 }
