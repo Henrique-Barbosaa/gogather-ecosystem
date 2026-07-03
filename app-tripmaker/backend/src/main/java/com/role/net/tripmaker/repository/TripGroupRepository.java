@@ -1,21 +1,18 @@
 package com.role.net.tripmaker.repository;
 
 import com.role.net.tripmaker.entity.Group;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import gogather.framework.group.jpa.repository.BaseGroupRepository;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 @Repository
-public interface TripGroupRepository extends JpaRepository<Group, Long> {
+public interface TripGroupRepository extends BaseGroupRepository<Group> {
 
     @Query("SELECT g FROM Group g JOIN g.members m WHERE m.user.id = :userId")
-    List<Group> findGroupsByUserId(@Param("userId") Long userId);
+    java.util.List<Group> findGroupsByUserId(@Param("userId") Long userId);
 
-    @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END FROM Group g JOIN g.members m WHERE g.inviteCode = :inviteCode AND m.user.id = :userId")
+    @Query("SELECT COUNT(m) > 0 FROM Group g JOIN g.members m WHERE g.inviteCode = :inviteCode AND m.user.id = :userId")
     boolean isGroupMemberByInviteCode(@Param("inviteCode") String inviteCode, @Param("userId") Long userId);
-
-    Optional<Group> findByInviteCode(String inviteCode);
 }

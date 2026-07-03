@@ -4,6 +4,7 @@ import com.role.net.tripmaker.entity.Group;
 import java.time.LocalDate;
 
 public record GroupResponse(
+    Long id,
     String inviteCode,
     String name,
     String description,
@@ -14,6 +15,7 @@ public record GroupResponse(
 ) {
     public static GroupResponse from(Group group) {
         return new GroupResponse(
+            group.getId(),
             group.getInviteCode(),
             group.getName(),
             group.getDescription(),

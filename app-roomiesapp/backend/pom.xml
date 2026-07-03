@@ -31,6 +31,35 @@
 
         <dependency>
             <groupId>br.com.gogather</groupId>
+            <artifactId>gogather-framework-group</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>br.com.gogather</groupId>
+            <artifactId>gogather-framework-group-jpa</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>br.com.gogather</groupId>
+            <artifactId>gogather-framework-group-web</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>br.com.gogather</groupId>
+            <artifactId>gogather-framework-chat</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>br.com.gogather</groupId>
             <artifactId>gogather-framework-billing</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
@@ -38,12 +67,6 @@
         <dependency>
             <groupId>br.com.gogather</groupId>
             <artifactId>gogather-framework-polling</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>br.com.gogather</groupId>
-            <artifactId>gogather-framework-chat</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
@@ -113,11 +136,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
         <dependency>
