@@ -19,11 +19,15 @@ public class TokenService {
     }
 
     public String generateToken(UserDetails userDetails) {
+        return generateToken(userDetails.getUsername());
+    }
+
+    public String generateToken(String subject) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(jwtProperties.getSecret());
             return JWT.create()
                     .withIssuer("gogather-framework")
-                    .withSubject(userDetails.getUsername())
+                    .withSubject(subject)
                     .withIssuedAt(Instant.now())
                     .withExpiresAt(Instant.now().plus(jwtProperties.getExpirationMinutes(), ChronoUnit.MINUTES))
                     .sign(algorithm);
