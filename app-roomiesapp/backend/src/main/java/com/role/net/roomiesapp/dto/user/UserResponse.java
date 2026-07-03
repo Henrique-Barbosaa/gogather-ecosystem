@@ -6,16 +6,16 @@ import com.role.net.roomiesapp.entity.User;
 public record UserResponse(
     String id,
     String username,
-    String displayName,
+    String name,
     String email,
     String phoneNumber,
     LocalDate birthDate
 ) {
     public static UserResponse from(User user) {
         return new UserResponse(
-            user.getExternalId() != null ? user.getExternalId().toString() : String.valueOf(user.getId()),
+            String.valueOf(user.getId()),
             user.getUsername(),
-            user.getDisplayName(),
+            user.getName(),
             user.getEmail(),
             user.getPhoneNumber(),
             user.getBirthDate()

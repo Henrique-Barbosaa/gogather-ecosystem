@@ -3,7 +3,6 @@ package com.role.net.roomiesapp.service.provider;
 import com.role.net.roomiesapp.entity.Group;
 import gogather.framework.core.Participant;
 import gogather.framework.group.core.GroupInviteValidationStrategy;
-import gogather.framework.group.exception.UserAlreadyInGroupException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,7 +16,7 @@ public class AppGroupValidationStrategy implements GroupInviteValidationStrategy
         Integer limite = household.getMaxOccupants();
 
         if (limite != null && ocupantesAtuais >= limite) {
-            throw new UserAlreadyInGroupException(
+            throw new IllegalStateException(
                 "Esta república já atingiu o limite de " + limite + " moradores.");
         }
     }
