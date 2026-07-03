@@ -1,0 +1,11 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: roomiesapp-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-pedro}
+      POSTGRES_PASSWORD: ${DB_PASS:-pp1234}
+      POSTGRES_DB: roomiesapp
+    ports:
+      - "5432:5432"
