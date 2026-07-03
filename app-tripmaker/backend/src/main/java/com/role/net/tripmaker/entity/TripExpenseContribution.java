@@ -1,0 +1,32 @@
+package com.role.net.tripmaker.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "trip_expense_contributions")
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class TripExpenseContribution extends BaseEntity {
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "expense_id", nullable = false)
+    private TripExpense expense;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User payer;
+
+    @Column(name = "amount_in_cents", nullable = false)
+    private Long amountInCents;
+}
