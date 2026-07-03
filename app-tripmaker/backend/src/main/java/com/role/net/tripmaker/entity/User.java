@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import gogather.framework.group.jpa.domain.BaseUser;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -18,18 +19,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
-public class User extends BaseEntity implements UserDetails {
+public class User extends BaseUser implements UserDetails {
 
     @NotNull(message = "User username cannot be null!")
     @Column(nullable = false, unique = true)
     private String username;
-
-    @Column(name = "display_name")
-    private String displayName;
-
-    @NotNull(message = "User email cannot be null!")
-    @Column(nullable = false, unique = true)
-    private String email;
 
     @NotNull(message = "User password cannot be null!")
     @Column(nullable = false)

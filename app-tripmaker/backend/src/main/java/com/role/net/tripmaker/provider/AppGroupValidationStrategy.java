@@ -3,7 +3,6 @@ package com.role.net.tripmaker.service.provider;
 import com.role.net.tripmaker.entity.Group;
 import gogather.framework.core.Participant;
 import gogather.framework.group.core.GroupInviteValidationStrategy;
-import gogather.framework.group.exception.UserAlreadyInGroupException;
 import java.time.LocalDate;
 import org.springframework.stereotype.Component;
 
@@ -15,14 +14,14 @@ public class AppGroupValidationStrategy implements GroupInviteValidationStrategy
         Group trip = (Group) group;
 
         if (trip.getStartDate() != null && trip.getStartDate().isBefore(LocalDate.now())) {
-            throw new UserAlreadyInGroupException(
+            throw new IllegalStateException(
                 "Esta viagem já começou e não aceita novos viajantes.");
         }
 
         int viajantesAtuais = trip.getMembers() != null ? trip.getMembers().size() : 0;
         Integer limite = trip.getMaxTravelers();
         if (limite != null && viajantesAtuais >= limite) {
-            throw new UserAlreadyInGroupException(
+            throw new IllegalStateException(
                 "Esta viagem já atingiu o limite de " + limite + " viajantes.");
         }
     }
