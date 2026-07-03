@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: Tripmaker
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:dummy-key}
+  config:
+    import: optional:classpath:secret.yaml
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tripmaker
+    username: ${db.username:postgres}
+    password: ${db.password:password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: ${SERVER_PORT:8080}
+
+framework:
+  security:
+    jwt:
+      secret: ${token.secret:tripmaker-default-secret-key-change-in-production-long-enough-key-256-bits}
+      expiration-minutes: 120

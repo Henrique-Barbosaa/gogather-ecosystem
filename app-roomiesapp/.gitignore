@@ -1,0 +1,69 @@
+# Compiled class file
+*.class
+
+# Log files
+*.log
+*.log.*
+
+# Maven
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Node / Frontend (for future use)
+node_modules/
+dist/
+build/
+.next/
+out/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Secrets and Environment Variables (CRITICAL)
+.env
+*.env
+secret.yaml
+**/secret.yaml
+!secret.yaml.example
+
+# Local Uploads & Data
+uploads/
+*.sqlite
+*.db

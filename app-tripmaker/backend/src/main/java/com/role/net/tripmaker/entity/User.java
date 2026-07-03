@@ -1,0 +1,73 @@
+package com.role.net.tripmaker.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "users")
+public class User extends BaseEntity implements UserDetails {
+
+    @NotNull(message = "User username cannot be null!")
+    @Column(nullable = false, unique = true)
+    private String username;
+
+    @Column(name = "display_name")
+    private String displayName;
+
+    @NotNull(message = "User email cannot be null!")
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @NotNull(message = "User password cannot be null!")
+    @Column(nullable = false)
+    private String password;
+
+    @Column(name = "birthdate")
+    private LocalDate birthDate;
+
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public String getUsername() {
+        return this.username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return this.active;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.active;
+    }
+}
