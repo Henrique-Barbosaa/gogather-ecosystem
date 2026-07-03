@@ -35,4 +35,7 @@ public class ChatMessage extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MessageType type;
+
+    @OneToOne(mappedBy = "chatMessage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Poll poll;
 }
