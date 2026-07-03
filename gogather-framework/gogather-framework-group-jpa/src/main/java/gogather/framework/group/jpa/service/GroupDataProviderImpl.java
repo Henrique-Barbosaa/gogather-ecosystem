@@ -6,6 +6,7 @@ import gogather.framework.group.core.GroupDataProvider;
 import gogather.framework.group.jpa.domain.BaseGroup;
 import gogather.framework.group.jpa.repository.GroupRepository;
 import gogather.framework.group.jpa.repository.BaseUserRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,7 +15,7 @@ public class GroupDataProviderImpl implements GroupDataProvider {
     private final GroupRepository groupRepository;
     private final BaseUserRepository userRepository;
 
-    public GroupDataProviderImpl(GroupRepository groupRepository, BaseUserRepository userRepository) {
+    public GroupDataProviderImpl(@Qualifier("fwGroupRepository") GroupRepository groupRepository, BaseUserRepository userRepository) {
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
     }

@@ -10,5 +10,5 @@ import com.role.net.gogather.entity.Expense;
 
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     Optional<Expense> findByExternalId(UUID externalId);
-    List<Expense> findByGroup_ExternalId(UUID groupExternalId);
+    List<Expense> findByGroup_InviteCode(String inviteCode);
 }

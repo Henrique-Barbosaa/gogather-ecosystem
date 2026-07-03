@@ -1,5 +1,6 @@
 package com.role.net.gogather.controller;
 
+import com.role.net.gogather.entity.EventStop;
 import com.role.net.gogather.entity.Expense;
 import com.role.net.gogather.entity.Group;
 import com.role.net.gogather.entity.User;

@@ -21,7 +21,7 @@ import com.role.net.gogather.repository.UserRepository;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-@Service
+@Service("appGroupService")
 public class GroupService {
 
     private final GroupRepository groupRepository;

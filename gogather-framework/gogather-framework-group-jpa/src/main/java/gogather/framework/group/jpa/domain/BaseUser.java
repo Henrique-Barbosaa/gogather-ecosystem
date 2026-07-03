@@ -18,6 +18,28 @@ public abstract class BaseUser implements Participant {
     @Column(unique = true)
     private String email;
 
+    @Column(name = "external_id", unique = true)
+    private java.util.UUID externalId = java.util.UUID.randomUUID();
+
+    @Column(name = "display_name")
+    private String displayName;
+
+    public java.util.UUID getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(java.util.UUID externalId) {
+        this.externalId = externalId;
+    }
+
+    public String getDisplayName() {
+        return displayName != null ? displayName : name;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
     @Override
     public String getIdentifier() {
         return this.id != null ? this.id.toString() : null;

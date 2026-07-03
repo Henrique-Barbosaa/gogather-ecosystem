@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.role.net.gogather.entity.Expense;
 import com.role.net.gogather.entity.ExpenseDistribution;
-import com.role.net.gogather.entity.GroupMember;
-import com.role.net.gogather.enums.SplitStatus;
+import gogather.framework.group.jpa.domain.GroupMember;
+import gogather.framework.billing.dto.DebtStatus;
 import com.role.net.gogather.exception.ResourceNotFoundException;
 import com.role.net.gogather.repository.ExpenseDistributionRepository;
 import com.role.net.gogather.repository.ExpenseRepository;
@@ -67,9 +67,10 @@ public class AppBillingDataProvider implements BillingDataProvider {
             GroupMember debtor = (GroupMember) dist.debtor();
             GroupMember creditor = (GroupMember) dist.creditor();
 
+            DebtStatus status = dist.status() != null ? dist.status() : DebtStatus.PENDING;
             ExpenseDistribution ed = new ExpenseDistribution(
                 dist.amountInCents(),
-                SplitStatus.PENDING,
+                status,
                 debtor,
                 creditor,
                 expense

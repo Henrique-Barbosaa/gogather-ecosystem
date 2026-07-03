@@ -113,6 +113,21 @@ export function ExpensesList({ groupId, members }: { groupId: string, members: {
                     const debtorName = debtorMember ? (debtorMember.displayName || debtorMember.username) : "Alguém";
                     const creditorName = creditorMember ? (creditorMember.displayName || creditorMember.username) : "Alguém";
 
+                    const getStatusBadge = (status: string) => {
+                      switch (status) {
+                        case 'PENDING':
+                          return <span className="text-xs font-medium px-2 py-0.5 rounded-full w-fit bg-yellow-100 text-yellow-800">Pendente</span>;
+                        case 'AWAITING_CONFIRMATION':
+                          return <span className="text-xs font-medium px-2 py-0.5 rounded-full w-fit bg-blue-100 text-blue-800">Aguardando Confirmação</span>;
+                        case 'PAID':
+                          return <span className="text-xs font-medium px-2 py-0.5 rounded-full w-fit bg-green-100 text-green-800">Pago</span>;
+                        case 'CANCELLED':
+                          return <span className="text-xs font-medium px-2 py-0.5 rounded-full w-fit bg-red-100 text-red-800">Cancelado</span>;
+                        default:
+                          return <span className="text-xs font-medium px-2 py-0.5 rounded-full w-fit bg-gray-200 text-gray-700">{status}</span>;
+                      }
+                    };
+
                     return (
                       <div key={dist.expenseDistributionExternalId} className="flex flex-col justify-between gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
                         <div className="flex flex-col gap-1 text-sm">
@@ -121,9 +136,7 @@ export function ExpensesList({ groupId, members }: { groupId: string, members: {
                           ) : (
                             <span><strong>{debtorName}</strong> te deve <strong className="text-green-600">R$ {dist.value.toFixed(2)}</strong></span>
                           )}
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full w-fit bg-gray-200 text-gray-700">
-                            Status: {dist.status}
-                          </span>
+                          {getStatusBadge(dist.status)}
                         </div>
 
                         <div className="flex items-center gap-2">

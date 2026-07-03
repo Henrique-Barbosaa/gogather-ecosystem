@@ -4,7 +4,6 @@ import gogather.framework.group.jpa.domain.BaseGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,9 +15,6 @@ import lombok.Setter;
 @Table(name = "households")
 public class Group extends BaseGroup {
 
-    @Column(name = "external_id", unique = true, nullable = false, updatable = false)
-    private UUID externalId = UUID.randomUUID();
-
     @Column(name = "address", length = 300)
     private String address;
 
@@ -27,4 +23,23 @@ public class Group extends BaseGroup {
 
     @Column(name = "max_occupants", nullable = false)
     private Integer maxOccupants = 8;
+
+    public void addMember(User user, gogather.framework.group.jpa.domain.GroupRole role) {
+        gogather.framework.group.jpa.domain.GroupMember member = new gogather.framework.group.jpa.domain.GroupMember();
+        member.setGroup(this);
+        member.setUser(user);
+        member.setRole(role);
+        if (getMembers() == null) {
+            setMembers(new java.util.ArrayList<>());
+        }
+        getMembers().add(member);
+    }
+
+    public void addMember(gogather.framework.group.jpa.domain.GroupMember member) {
+        member.setGroup(this);
+        if (getMembers() == null) {
+            setMembers(new java.util.ArrayList<>());
+        }
+        getMembers().add(member);
+    }
 }

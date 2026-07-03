@@ -3,7 +3,6 @@ package com.role.net.gogather.service;
 import com.role.net.gogather.entity.ChatMessage;
 import com.role.net.gogather.entity.Group;
 import com.role.net.gogather.entity.User;
-import com.role.net.gogather.enums.GroupMemberStatus;
 import com.role.net.gogather.enums.MessageType;
 import com.role.net.gogather.exception.ResourceNotFoundException;
 import com.role.net.gogather.repository.ChatMessageRepository;
@@ -31,7 +30,7 @@ public class AppChatDataProvider implements ChatDataProvider {
 
     @Override
     public boolean canAccessRoom(String roomId, String senderId) {
-        return groupRepository.isGroupMember(Long.parseLong(roomId), Long.parseLong(senderId), GroupMemberStatus.ACTIVE);
+        return groupRepository.isGroupMemberByUserId(Long.parseLong(roomId), Long.parseLong(senderId));
     }
 
     @Override

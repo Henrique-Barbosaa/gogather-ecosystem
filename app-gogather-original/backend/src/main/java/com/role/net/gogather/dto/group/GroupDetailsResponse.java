@@ -8,7 +8,7 @@ public record GroupDetailsResponse(
     String name,
     String description,
     String inviteCode,
-    Instant createdAt,
+    java.time.LocalDateTime createdAt,
     Instant eventDate,
     List<MemberDTO> members,
     List<EventStopDTO> eventStops

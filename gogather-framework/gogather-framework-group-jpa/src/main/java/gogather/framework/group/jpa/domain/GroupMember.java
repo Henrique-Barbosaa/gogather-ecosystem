@@ -1,15 +1,32 @@
 package gogather.framework.group.jpa.domain;
 
+import gogather.framework.core.Participant;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "fw_group_member")
-public class GroupMember {
+public class GroupMember implements Participant {
+
+    @Override
+    public String getIdentifier() {
+        return this.id != null ? this.id.toString() : null;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "external_id", unique = true)
+    private java.util.UUID externalId = java.util.UUID.randomUUID();
+
+    public java.util.UUID getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(java.util.UUID externalId) {
+        this.externalId = externalId;
+    }
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "group_id")

@@ -16,21 +16,21 @@ import com.role.net.gogather.entity.PixInfo;
 import com.role.net.gogather.entity.User;
 import com.role.net.gogather.exception.UnauthorizedRequestException;
 import com.role.net.gogather.service.ExpenseService;
-import com.role.net.gogather.service.PixService;
+import gogather.framework.billing.pix.PixCodeGenerator;
 
 @RestController
 @RequestMapping("/expense")
 public class ExpenseController {
 
     private final ExpenseService expenseService;
-    private final PixService pixService;
+    private final PixCodeGenerator pixCodeGenerator;
 
     public ExpenseController(
         ExpenseService expenseService,
-        PixService pixService
+        PixCodeGenerator pixCodeGenerator
     ) {
         this.expenseService = expenseService;
-        this.pixService = pixService;
+        this.pixCodeGenerator = pixCodeGenerator;
     }
 
     @GetMapping("/split/{splitId}/pix-code")
@@ -43,11 +43,9 @@ public class ExpenseController {
         if(!expenseDistribution.getDebtor().getUser().getId().equals(user.getId()))
             throw new UnauthorizedRequestException("Essa dívida não é sua!");
 
-        PixInfo pixInfo = expenseDistribution.getCreditor().getUser().getPixInfo();
-        String pixCopyAndPaste = pixService.gerarPixCopiaECola(
-            pixInfo.getPixKey(),
-            pixInfo.getMerchantName(),
-            pixInfo.getMerchantCity(),
+        PixInfo pixInfo = ((User) expenseDistribution.getCreditor().getUser()).getPixInfo();
+        String pixCopyAndPaste = pixCodeGenerator.generatePixCode(
+            pixInfo,
             expenseDistribution.getValue()
         );
 

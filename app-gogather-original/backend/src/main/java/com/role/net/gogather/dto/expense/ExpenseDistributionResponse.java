@@ -3,12 +3,12 @@ package com.role.net.gogather.dto.expense;
 import java.util.UUID;
 
 import com.role.net.gogather.entity.ExpenseDistribution;
-import com.role.net.gogather.enums.SplitStatus;
+import gogather.framework.billing.dto.DebtStatus;
 
 public record ExpenseDistributionResponse(
     UUID expenseDistributionExternalId,
     Double value,
-    SplitStatus status,
+    DebtStatus status,
     UUID debtorExternalId,
     UUID creditorExternalId,
     UUID parentExpenseExternalId

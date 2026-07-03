@@ -19,13 +19,11 @@ import com.role.net.gogather.dto.expense.ExpenseDistributionRequest;
 import com.role.net.gogather.dto.expense.ExpenseManualCreationRequest;
 import com.role.net.gogather.entity.Expense;
 import com.role.net.gogather.entity.Group;
-import com.role.net.gogather.entity.GroupMember;
+import gogather.framework.group.jpa.domain.GroupMember;
 import com.role.net.gogather.entity.PixInfo;
 import com.role.net.gogather.entity.User;
-import com.role.net.gogather.enums.GroupMemberStatus;
-import com.role.net.gogather.enums.GroupRole;
-import com.role.net.gogather.enums.SplitStatus;
-import com.role.net.gogather.repository.GroupMemberRepository;
+import gogather.framework.group.jpa.domain.GroupRole;
+import gogather.framework.billing.dto.DebtStatus;
 import com.role.net.gogather.repository.GroupRepository;
 import com.role.net.gogather.repository.UserRepository;
 
@@ -42,9 +40,6 @@ class ExpenseServiceBillingIntegrationTest {
     @Autowired
     private GroupRepository groupRepository;
 
-    @Autowired
-    private GroupMemberRepository groupMemberRepository;
-
     private User userA;
     private User userB;
     private User userC;
@@ -59,11 +54,10 @@ class ExpenseServiceBillingIntegrationTest {
         userB = createUser("userb", "userb@test.com", "User B", "pix-b");
         userC = createUser("userc", "userc@test.com", "User C", "pix-c");
 
-        group = Group.builder()
-            .name("Grupo de Teste")
-            .eventDate(Instant.now())
-            .inviteCode(UUID.randomUUID().toString())
-            .build();
+        group = new Group();
+        group.setName("Grupo de Teste");
+        group.setEventDate(Instant.now());
+        group.setInviteCode(UUID.randomUUID().toString().substring(0, 8));
         group.setExternalId(UUID.randomUUID());
         group = groupRepository.save(group);
 
@@ -75,6 +69,10 @@ class ExpenseServiceBillingIntegrationTest {
         group.getMembers().add(memberB);
         group.getMembers().add(memberC);
         group = groupRepository.save(group);
+
+        memberA = group.getMembers().get(0);
+        memberB = group.getMembers().get(1);
+        memberC = group.getMembers().get(2);
     }
 
     private User createUser(String username, String email, String name, String pixKey) {
@@ -98,14 +96,12 @@ class ExpenseServiceBillingIntegrationTest {
     }
 
     private GroupMember createMember(Group g, User u, GroupRole role) {
-        GroupMember m = GroupMember.builder()
-            .group(g)
-            .user(u)
-            .role(role)
-            .status(GroupMemberStatus.ACTIVE)
-            .build();
+        GroupMember m = new GroupMember();
+        m.setGroup(g);
+        m.setUser(u);
+        m.setRole(role);
         m.setExternalId(UUID.randomUUID());
-        return groupMemberRepository.save(m);
+        return m;
     }
 
     @Test
@@ -120,7 +116,7 @@ class ExpenseServiceBillingIntegrationTest {
             List.of(contA, contB, contC)
         );
 
-        Expense expense = expenseService.createAuto(userA, group.getExternalId(), request);
+        Expense expense = expenseService.createAuto(userA, group.getInviteCode(), request);
 
         assertNotNull(expense.getId());
         assertEquals(9000L, expense.getTotalValue());
@@ -129,7 +125,7 @@ class ExpenseServiceBillingIntegrationTest {
 
         expense.getExpenseDistributions().forEach(dist -> {
             assertEquals(3000L, dist.getValue());
-            assertEquals(SplitStatus.PENDING, dist.getStatus());
+            assertEquals(DebtStatus.PENDING, dist.getStatus());
             assertEquals(memberA.getId(), dist.getCreditor().getId());
             assertTrue(dist.getDebtor().getId().equals(memberB.getId()) || dist.getDebtor().getId().equals(memberC.getId()));
         });
@@ -149,7 +145,7 @@ class ExpenseServiceBillingIntegrationTest {
             List.of(distB, distC)
         );
 
-        Expense expense = expenseService.createManual(userA, group.getExternalId(), request);
+        Expense expense = expenseService.createManual(userA, group.getInviteCode(), request);
 
         assertNotNull(expense.getId());
         assertEquals(10000L, expense.getTotalValue());
@@ -163,5 +159,31 @@ class ExpenseServiceBillingIntegrationTest {
 
         assertTrue(foundB, "Deve encontrar a dívida de 60.00 do membro B");
         assertTrue(foundC, "Deve encontrar a dívida de 40.00 do membro C");
+    }
+
+    @Test
+    void testDebtStatusTransitions() {
+        ExpenseContributionRequest contA = new ExpenseContributionRequest(100.0, userA.getExternalId());
+        ExpenseDistributionRequest distB = new ExpenseDistributionRequest(100.0, userB.getExternalId(), userA.getExternalId());
+
+        ExpenseManualCreationRequest request = new ExpenseManualCreationRequest(
+            "Jantar",
+            100.0,
+            List.of(contA),
+            List.of(distB)
+        );
+
+        Expense expense = expenseService.createManual(userA, group.getInviteCode(), request);
+        com.role.net.gogather.entity.ExpenseDistribution dist = expense.getExpenseDistributions().iterator().next();
+
+        assertEquals(DebtStatus.PENDING, dist.getStatus());
+
+        expenseService.markAsPaid(userB.getId(), dist.getExternalId());
+        dist = expenseService.findExpenseDistributionByExternalId(dist.getExternalId());
+        assertEquals(DebtStatus.AWAITING_CONFIRMATION, dist.getStatus());
+
+        expenseService.confirmReceipt(userA.getId(), dist.getExternalId());
+        dist = expenseService.findExpenseDistributionByExternalId(dist.getExternalId());
+        assertEquals(DebtStatus.PAID, dist.getStatus());
     }
 }

@@ -21,11 +21,11 @@ import com.role.net.gogather.entity.Expense;
 import com.role.net.gogather.entity.ExpenseContribution;
 import com.role.net.gogather.entity.ExpenseDistribution;
 import com.role.net.gogather.entity.Group;
-import com.role.net.gogather.entity.GroupMember;
+import gogather.framework.group.jpa.domain.GroupMember;
 import com.role.net.gogather.entity.User;
 import com.role.net.gogather.enums.ExpenseStatus;
-import com.role.net.gogather.enums.GroupRole;
-import com.role.net.gogather.enums.SplitStatus;
+import gogather.framework.group.jpa.domain.GroupRole;
+import gogather.framework.billing.dto.DebtStatus;
 import com.role.net.gogather.exception.InvalidDataException;
 import com.role.net.gogather.exception.InvalidRequestException;
 import com.role.net.gogather.exception.ResourceNotFoundException;
@@ -59,7 +59,7 @@ public class ExpenseService {
 
     public Expense createAuto(
         User requester,
-        UUID groupExternalId,
+        String inviteCode,
         ExpenseAutoCreationRequest request
     ) {
         Long totalContributions = request.contributions().stream()
@@ -67,7 +67,7 @@ public class ExpenseService {
         if(!totalContributions.equals(toCents(request.totalValue())))
             throw new InvalidDataException("A soma das contribuições não bate com o valor total da despesa");
 
-        Group group = groupRepository.findByExternalId(groupExternalId)
+        Group group = groupRepository.findByInviteCode(inviteCode)
             .orElseThrow(() -> new ResourceNotFoundException("Grupo não encontrado."));
 
         GroupMember requesterMember = group.getMembers().stream()
@@ -95,7 +95,7 @@ public class ExpenseService {
 
     public Expense createManual(
         User requester,
-        UUID groupExternalId,
+        String inviteCode,
         ExpenseManualCreationRequest request
     ) {
         Long totalContributions = request.contributions().stream()
@@ -108,7 +108,7 @@ public class ExpenseService {
         if(!totalDistributions.equals(toCents(request.totalValue())))
             throw new InvalidDataException("A soma das distribuições não bate com o valor total da despesa");
 
-        Group group = groupRepository.findByExternalId(groupExternalId)
+        Group group = groupRepository.findByInviteCode(inviteCode)
             .orElseThrow(() -> new ResourceNotFoundException("Grupo não encontrado."));
 
         GroupMember requesterMember = group.getMembers().stream()
@@ -141,11 +141,11 @@ public class ExpenseService {
             .orElseThrow(() -> new ResourceNotFoundException("Despesa não encontrada"));
     }
 
-    public List<ExpenseResponse> getGroupExpenses(UUID groupExternalId, Long userId) {
+    public List<ExpenseResponse> getGroupExpenses(String inviteCode, Long userId) {
         // Here we could verify if the user is a member of the group.
         // We'll rely on the GroupService or the controller to do this if needed,
         // or just fetch expenses directly.
-        List<Expense> expenses = expenseRepository.findByGroup_ExternalId(groupExternalId);
+        List<Expense> expenses = expenseRepository.findByGroup_InviteCode(inviteCode);
         return expenses.stream()
             .map(ExpenseResponse::from)
             .collect(Collectors.toList());
@@ -163,10 +163,10 @@ public class ExpenseService {
 
         if(!expenseDistribution.getDebtor().getUser().getId().equals(requesterId))
             throw new UnauthorizedRequestException("Essa dívida não é sua!");
-        if(!expenseDistribution.getStatus().equals(SplitStatus.PENDING))
+        if(!expenseDistribution.getStatus().equals(DebtStatus.PENDING))
             throw new InvalidRequestException("A dívida não está pendente.");
 
-        expenseDistribution.setStatus(SplitStatus.AWAITING_CONFIRMATION);
+        expenseDistribution.setStatus(DebtStatus.AWAITING_CONFIRMATION);
     }
 
     @Transactional
@@ -176,13 +176,13 @@ public class ExpenseService {
 
         if(!expenseDistribution.getCreditor().getUser().getId().equals(requesterId))
             throw new UnauthorizedRequestException("Você não é credor dessa dívida");
-        if(!expenseDistribution.getStatus().equals(SplitStatus.AWAITING_CONFIRMATION))
+        if(!expenseDistribution.getStatus().equals(DebtStatus.AWAITING_CONFIRMATION))
             throw new InvalidRequestException("A dívida não aguardando confirmação.");
 
-        expenseDistribution.setStatus(SplitStatus.SETTLED);
+        expenseDistribution.setStatus(DebtStatus.PAID);
 
-        if(!expenseDistributionRepository.existsByParentExpense_IdAndStatus(expenseDistribution.getParentExpense().getId(), SplitStatus.PENDING)
-            && !expenseDistributionRepository.existsByParentExpense_IdAndStatus(expenseDistribution.getParentExpense().getId(), SplitStatus.AWAITING_CONFIRMATION)
+        if(!expenseDistributionRepository.existsByParentExpense_IdAndStatus(expenseDistribution.getParentExpense().getId(), DebtStatus.PENDING)
+            && !expenseDistributionRepository.existsByParentExpense_IdAndStatus(expenseDistribution.getParentExpense().getId(), DebtStatus.AWAITING_CONFIRMATION)
         ) {
             expenseDistribution.getParentExpense().setStatus(ExpenseStatus.FINISHED);
         }
@@ -201,9 +201,9 @@ public class ExpenseService {
                 throw new InvalidDataException("Contribuidor não está no grupo.");
             }
 
-            if(payer.getUser().getPixInfo() == null) {
+            if(((User) payer.getUser()).getPixInfo() == null) {
                 throw new InvalidRequestException(
-                    "O membro " + payer.getUser().getDisplayName() + " não possui chave pix cadastrada."
+                    "O membro " + ((User) payer.getUser()).getDisplayName() + " não possui chave pix cadastrada."
                 );
             }
 
@@ -241,7 +241,7 @@ public class ExpenseService {
             expense.getExpenseDistributions().add(
                 new ExpenseDistribution(
                     toCents(distribution.value()),
-                    SplitStatus.PENDING,
+                    DebtStatus.PENDING,
                     debtor,
                     creditor,
                     expense)
@@ -251,7 +251,7 @@ public class ExpenseService {
 
     private void putContributionsAuto(
         Expense expense,
-        Set<GroupMember> groupMembers,
+        java.util.Collection<GroupMember> groupMembers,
         List<ExpenseContributionRequest> contributionRequests
     ) {
 
@@ -267,9 +267,9 @@ public class ExpenseService {
                 );
             }
 
-            if(payer.getUser().getPixInfo() == null) {
+            if(((User) payer.getUser()).getPixInfo() == null) {
                 throw new InvalidRequestException(
-                    "O membro " + payer.getUser().getDisplayName() + " não possui chave pix cadastrada."
+                    "O membro " + ((User) payer.getUser()).getDisplayName() + " não possui chave pix cadastrada."
                 );
             }
 
