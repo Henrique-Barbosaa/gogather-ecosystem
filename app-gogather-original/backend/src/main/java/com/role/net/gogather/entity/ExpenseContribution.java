@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import gogather.framework.group.jpa.domain.GroupMember;
 
 @Getter @Setter
 @NoArgsConstructor
@@ -28,7 +29,7 @@ public class ExpenseContribution extends BaseEntity {
 
     // O valor vai ser salvo em centavos
     @NotNull(message = "Expense contribution value cannot be null.")
-    @Column(nullable = false)
+    @Column(name = "\"value\"", nullable = false)
     private Long value;
 
     @NotNull(message = "Payed expense split must have a parent expense.")

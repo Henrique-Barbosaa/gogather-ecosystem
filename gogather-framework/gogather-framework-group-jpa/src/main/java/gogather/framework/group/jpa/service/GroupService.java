@@ -5,17 +5,18 @@ import gogather.framework.group.jpa.domain.BaseUser;
 import gogather.framework.group.jpa.domain.GroupMember;
 import gogather.framework.group.jpa.domain.GroupRole;
 import gogather.framework.group.jpa.repository.GroupRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 
-@Service
+@Service("fwGroupService")
 public class GroupService {
 
     private final GroupRepository groupRepository; 
 
-    public GroupService(GroupRepository groupRepository) {
+    public GroupService(@Qualifier("fwGroupRepository") GroupRepository groupRepository) {
         this.groupRepository = groupRepository;
     }
 

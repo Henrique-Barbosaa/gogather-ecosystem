@@ -27,12 +27,23 @@ public abstract class BaseGroup implements Group {
     @Column(unique = true, updatable = false, nullable = false, length = 8)
     private String inviteCode;
 
+    @Column(name = "external_id", unique = true)
+    private java.util.UUID externalId = java.util.UUID.randomUUID();
+
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     // 1. Cria a lista de membros gerenciada em Cascata!
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GroupMember> members = new ArrayList<>();
+
+    public java.util.UUID getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(java.util.UUID externalId) {
+        this.externalId = externalId;
+    }
 
     public Long getId() { 
         return id; 

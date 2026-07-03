@@ -35,9 +35,6 @@ public class User extends BaseUser implements UserDetails {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(name = "display_name")
-    private String displayName;
-
     @NotNull(message = "User password cannot be null!")
     @Column(nullable = false)
     private String password;
@@ -56,19 +53,9 @@ public class User extends BaseUser implements UserDetails {
     @Column(name = "updated_at", nullable = true)
     private Instant updatedAt;
 
-    @Column(name = "external_id", nullable = false, updatable = false, unique = true)
-    private UUID externalId;
-
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "pix_info_id", referencedColumnName = "id")
     private PixInfo pixInfo;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.externalId == null) {
-            this.externalId = UUID.randomUUID();
-        }
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -101,13 +88,13 @@ public class User extends BaseUser implements UserDetails {
     }
 
     public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+        super.setDisplayName(displayName);
         super.setName(displayName);
     }
 
     @Override
     public String getName() {
-        return this.displayName != null ? this.displayName : super.getName();
+        return super.getDisplayName() != null ? super.getDisplayName() : super.getName();
     }
 
     @Override

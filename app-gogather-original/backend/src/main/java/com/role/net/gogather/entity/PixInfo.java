@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import gogather.framework.billing.pix.PixRecipient;
 
 @Table(name = "pix_info")
 @Entity
@@ -17,7 +18,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PixInfo extends BaseEntity {
+public class PixInfo extends BaseEntity implements PixRecipient {
 
     @NotBlank(message = "Pix info must have a pix key.")
     @Column(nullable = false, unique = true)

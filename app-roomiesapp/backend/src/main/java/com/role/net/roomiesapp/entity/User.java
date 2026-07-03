@@ -30,11 +30,8 @@ public class User extends BaseUser implements UserDetails {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(name = "display_name")
-    private String displayName;
-
     public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+        super.setDisplayName(displayName);
         this.setName(displayName);
     }
 
@@ -58,16 +55,6 @@ public class User extends BaseUser implements UserDetails {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = true)
     private Instant updatedAt;
-
-    @Column(name = "external_id", nullable = false, updatable = false, unique = true)
-    private UUID externalId;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.externalId == null) {
-            this.externalId = UUID.randomUUID();
-        }
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -101,6 +88,6 @@ public class User extends BaseUser implements UserDetails {
 
     @Override
     public String getIdentifier() {
-        return this.externalId != null ? this.externalId.toString() : String.valueOf(this.getId());
+        return this.getExternalId() != null ? this.getExternalId().toString() : String.valueOf(this.getId());
     }
 }

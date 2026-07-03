@@ -2,7 +2,8 @@ package com.role.net.gogather.dto.expense;
 
 import java.util.UUID;
 
-import com.role.net.gogather.entity.GroupMember;
+import gogather.framework.group.jpa.domain.GroupMember;
+import com.role.net.gogather.entity.User;
 
 public record ExpenseDistributionPixResponse(
     UUID receiverMemberExternalId,
@@ -10,9 +11,10 @@ public record ExpenseDistributionPixResponse(
     String pixCopyAndPaste
 ) {
     public static ExpenseDistributionPixResponse from(GroupMember groupMember, String pixcnp) {
+        User user = (User) groupMember.getUser();
         return new ExpenseDistributionPixResponse(
             groupMember.getExternalId(),
-            groupMember.getUser().getPixInfo().getMerchantName(),
+            user.getPixInfo().getMerchantName(),
             pixcnp
         );
     }

@@ -3,7 +3,6 @@ package com.role.net.gogather.service;
 import com.role.net.gogather.entity.ChatMessage;
 import com.role.net.gogather.entity.Group;
 import com.role.net.gogather.entity.User;
-import com.role.net.gogather.enums.GroupMemberStatus;
 import com.role.net.gogather.enums.MessageType;
 import com.role.net.gogather.exception.ResourceNotFoundException;
 import com.role.net.gogather.exception.UserNotAGroupMemberException;
@@ -75,7 +74,7 @@ public class ChatService {
 			throw new ResourceNotFoundException("Group not found.");
 		}
 
-		if (!groupRepository.isGroupMemberByExternalId(externalId, userId, GroupMemberStatus.ACTIVE)) {
+		if (!groupRepository.isGroupMemberByExternalId(externalId, userId)) {
 			throw new UserNotAGroupMemberException("You are not a member of this group.");
 		}
 

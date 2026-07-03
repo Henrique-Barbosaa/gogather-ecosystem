@@ -1,9 +1,12 @@
 package com.role.net.gogather.entity;
 
-import com.role.net.gogather.enums.SplitStatus;
+import gogather.framework.billing.dto.DebtStatus;
+import gogather.framework.group.jpa.domain.GroupMember;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -31,12 +34,13 @@ public class ExpenseDistribution extends BaseEntity {
 
     // O valor vai ser salvo em centavos
     @NotNull(message = "Expense split value cannot be null")
-    @Column(nullable = false)
+    @Column(name = "\"value\"", nullable = false)
     private Long value;
 
     @NotNull(message = "Expense split status cannot be null")
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SplitStatus status;
+    private DebtStatus status;
 
     @NotNull(message = "Expense split must have a debtor")
     @ManyToOne(fetch = FetchType.LAZY)
