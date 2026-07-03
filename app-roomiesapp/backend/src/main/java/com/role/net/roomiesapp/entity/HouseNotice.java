@@ -5,13 +5,13 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "chores")
+@Table(name = "house_notices")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Chore extends BaseEntity {
+public class HouseNotice extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
@@ -21,19 +21,14 @@ public class Chore extends BaseEntity {
     @JoinColumn(name = "creator_id", nullable = false)
     private User creator;
 
-    @Column(nullable = false, length = 500)
-    private String description;
+    @Column(nullable = false, length = 100)
+    private String title;
 
-    @Builder.Default
-    @Column(nullable = false)
-    private boolean completed = false;
+    @Column(nullable = false, length = 1000)
+    private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assignee_id")
-    private User assignee;
-
-    @Column(name = "created_at_chore") // Just to avoid conflict if BaseEntity already maps it, but actually we can just inherit it!
-    private Instant createdAtChore;
+    @Column(name = "created_at_notice")
+    private Instant createdAtNotice;
 
     @PrePersist
     protected void onCreate() {

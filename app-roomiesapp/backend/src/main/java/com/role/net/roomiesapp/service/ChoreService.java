@@ -7,6 +7,8 @@ import com.role.net.roomiesapp.repository.ChoreRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class ChoreService {
 
@@ -24,6 +26,27 @@ public class ChoreService {
                 .description(description)
                 .completed(false)
                 .build();
+        return choreRepository.save(chore);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Chore> getChores(Long groupId) {
+        return choreRepository.findByGroupId(groupId);
+    }
+
+    @Transactional
+    public Chore assignChore(Long choreId, User assignee) {
+        Chore chore = choreRepository.findById(choreId)
+                .orElseThrow(() -> new IllegalArgumentException("Tarefa não encontrada."));
+        chore.setAssignee(assignee);
+        return choreRepository.save(chore);
+    }
+
+    @Transactional
+    public Chore completeChore(Long choreId) {
+        Chore chore = choreRepository.findById(choreId)
+                .orElseThrow(() -> new IllegalArgumentException("Tarefa não encontrada."));
+        chore.setCompleted(true);
         return choreRepository.save(chore);
     }
 }
