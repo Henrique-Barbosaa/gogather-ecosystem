@@ -37,6 +37,7 @@ public class AuthService implements UserDetailsService {
         User newUser = new User();
         String displayName = request.displayName();
         newUser.setDisplayName(displayName == null || displayName.isBlank() ? request.username() : displayName);
+        newUser.setName(newUser.getDisplayName());
         newUser.setUsername(request.username());
         newUser.setEmail(request.email());
         newUser.setPassword(passwordEncoder.encode(request.password()));
