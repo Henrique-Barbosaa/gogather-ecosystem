@@ -7,24 +7,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
+import gogather.framework.security.orchestrator.SecurityOrchestrator;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final TokenService tokenService;
-    private final UserDetailsService userDetailsService;
+    private final SecurityOrchestrator securityOrchestrator;
 
-    public JwtAuthenticationFilter(
-        TokenService tokenService,
-        UserDetailsService userDetailsService
-    ) {
-        this.tokenService = tokenService;
-        this.userDetailsService = userDetailsService;
+    public JwtAuthenticationFilter(SecurityOrchestrator securityOrchestrator) {
+        this.securityOrchestrator = securityOrchestrator;
     }
 
     @Override
@@ -36,27 +29,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = recoverToken(request);
 
         if (token != null) {
-            Optional<String> subjectOpt =
-                tokenService.validateTokenAndGetSubject(token);
-
-            if (subjectOpt.isPresent()) {
-                String username = subjectOpt.get();
-                try {
-                    UserDetails userDetails =
-                        userDetailsService.loadUserByUsername(username);
-
-                    UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                        );
-
-                    SecurityContextHolder.getContext().setAuthentication(
-                        authentication
-                    );
-                } catch (UsernameNotFoundException ex) {}
-            }
+            Optional<Authentication> authenticationOpt = securityOrchestrator.authenticateToken(token);
+            authenticationOpt.ifPresent(authentication ->
+                SecurityContextHolder.getContext().setAuthentication(authentication)
+            );
         }
 
         filterChain.doFilter(request, response);
