@@ -1,11 +1,17 @@
 package com.role.net.gogather.controller;
 
 import com.role.net.gogather.entity.Expense;
+import com.role.net.gogather.entity.Group;
 import com.role.net.gogather.entity.User;
 import com.role.net.gogather.service.ExpenseService;
-import com.role.net.gogather.service.GroupService;
-import com.role.net.gogather.dto.expense.ExpenseAutoCreationRequest;
+// Diferenciamos o Service do Framework e o Service da Aplicação (que cuida de paradas/despesas)
+import com.role.net.gogather.service.GroupService; 
+import gogather.framework.group.jpa.service.GroupService; // Service do Framework
+import gogather.framework.group.orchestrator.GroupMembershipOrchestrator;
+import gogather.framework.group.web.controller.AbstractGroupController;
+import gogather.framework.group.jpa.domain.BaseUser;
 
+import com.role.net.gogather.dto.expense.ExpenseAutoCreationRequest;
 import com.role.net.gogather.dto.expense.ExpenseManualCreationRequest;
 import com.role.net.gogather.dto.expense.ExpenseResponse;
 import com.role.net.gogather.dto.group.CreateGroupRequest;
@@ -22,148 +28,145 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/groups")
-public class GroupController {
+public class GroupController extends AbstractGroupController<Group, CreateGroupRequest> {
 
-    private final GroupService groupService;
+    private final com.role.net.gogather.service.GroupService appGroupService;
     private final ExpenseService expenseService;
 
     public GroupController(
-        GroupService groupService,
+        gogather.framework.group.jpa.service.GroupService frameworkGroupService,
+        GroupMembershipOrchestrator orchestrator,
+        com.role.net.gogather.service.GroupService appGroupService,
         ExpenseService expenseService
     ) {
-        this.groupService = groupService;
+        super(frameworkGroupService, orchestrator);
+        this.appGroupService = appGroupService;
         this.expenseService = expenseService;
     }
 
-    @PostMapping
-    public ResponseEntity<GroupResponse> createGroup(
-            @Valid @RequestBody CreateGroupRequest request,
-            @AuthenticationPrincipal User user
-	) {
-
-        GroupResponse response = groupService.create(request, user.getId());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @Override
+    protected Group mapToEntity(CreateGroupRequest request) {
+        Group group = new Group();
+        
+        group.setName(request.name());               
+        group.setDescription(request.description()); 
+        group.setEventDate(request.date());          
+        
+        if (request.stops() != null && !request.stops().isEmpty()) {
+            
+            List<EventStop> paradas = request.stops().stream().map(stopReq -> {
+                EventStop stop = new EventStop();
+                stop.setName(stopReq.name());
+                stop.setLatitude(stopReq.latitude());
+                stop.setLongitude(stopReq.longitude());
+                stop.setCategory(stopReq.category());
+                stop.setStopOrder(stopReq.order()); 
+                stop.setCity(stopReq.city());
+                stop.setState(stopReq.state());
+                
+                stop.setGroup(group); 
+                
+                return stop;
+            }).toList();
+            
+            group.setEventStops(paradas);
+        }
+        
+        return group;
     }
 
-	@GetMapping
+    @Override
+    protected BaseUser getAuthenticatedUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    @GetMapping
     public ResponseEntity<List<GroupResponse>> getUserGroups(@AuthenticationPrincipal User user) {
-        List<GroupResponse> response = groupService.getUserGroups(user.getId());
+        List<GroupResponse> response = appGroupService.getUserGroups(user.getId());
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{externalId}")
+    @GetMapping("/{inviteCode}")
     public ResponseEntity<GroupDetailsResponse> getGroupDetails(
-            @PathVariable UUID externalId,
+            @PathVariable String inviteCode,
             @AuthenticationPrincipal User user
     ) {
-        GroupDetailsResponse response = groupService.getGroupDetails(externalId, user.getId());
-
+        GroupDetailsResponse response = appGroupService.getGroupDetails(inviteCode, user.getId());
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/join/{inviteCode}")
-    public ResponseEntity<Void> joinGroup(
-            @PathVariable String inviteCode,
-            @AuthenticationPrincipal User loggedInUser
-    ) {
-        groupService.joinGroupByInviteCode(inviteCode, loggedInUser);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/{groupId}/invite/{friendId}")
+    @PostMapping("/{inviteCode}/invite/{friendId}")
     public ResponseEntity<Void> inviteFriend(
-            @PathVariable UUID groupId,
-            @PathVariable UUID friendId,
+            @PathVariable String inviteCode,
+            @PathVariable Long friendId,
             @AuthenticationPrincipal User loggedInUser
     ) {
-        groupService.inviteFriendToGroup(groupId, friendId, loggedInUser);
+        orchestrator.inviteUserToGroup(inviteCode, friendId.toString(), loggedInUser.getId().toString());
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{groupId}/accept")
-    public ResponseEntity<Void> acceptInvite(
-            @PathVariable UUID groupId,
-            @AuthenticationPrincipal User loggedInUser
-    ) {
-        groupService.acceptGroupInvite(groupId, loggedInUser);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/{groupId}/expense/auto")
+    @PostMapping("/{inviteCode}/expense/auto")
     public ResponseEntity<ExpenseResponse> createExpenseAuto(
         @AuthenticationPrincipal User user,
-        @PathVariable UUID groupId,
+        @PathVariable String inviteCode,
         @RequestBody ExpenseAutoCreationRequest request
     ) {
-        Expense expense = expenseService.createAuto(user, groupId, request);
-        return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(ExpenseResponse.from(expense));
+        Expense expense = expenseService.createAuto(user, inviteCode, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ExpenseResponse.from(expense));
     }
 
-    @PostMapping("/{groupId}/expense/manual")
+    @PostMapping("/{inviteCode}/expense/manual")
     public ResponseEntity<ExpenseResponse> createExpenseManual(
         @AuthenticationPrincipal User user,
-        @PathVariable UUID groupId,
+        @PathVariable String inviteCode,
         @RequestBody ExpenseManualCreationRequest request
     ) {
-        Expense expense = expenseService.createManual(user, groupId, request);
-        return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(ExpenseResponse.from(expense));
-	}
+        Expense expense = expenseService.createManual(user, inviteCode, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ExpenseResponse.from(expense));
+    }
 
-    @PostMapping("/{groupId}/stops/from-place/{placeId}")
+    @PostMapping("/{inviteCode}/stops/from-place/{placeId}")
     public ResponseEntity<Void> addStopFromPlace(
         @AuthenticationPrincipal User user,
-        @PathVariable UUID groupId,
+        @PathVariable String inviteCode,
         @PathVariable String placeId
     ) {
-        groupService.addEventStopFromPlace(groupId, placeId, user);
+        appGroupService.addEventStopFromPlace(inviteCode, placeId, user);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{groupId}/expenses")
+    @GetMapping("/{inviteCode}/expenses")
     public ResponseEntity<List<ExpenseResponse>> getGroupExpenses(
         @AuthenticationPrincipal User user,
-        @PathVariable UUID groupId
+        @PathVariable String inviteCode
     ) {
-        // Optionally verify if user is part of the group first.
-        // groupService.getGroupDetails will throw if not a member.
-        groupService.getGroupDetails(groupId, user.getId());
-
-        List<ExpenseResponse> expenses = expenseService.getGroupExpenses(groupId, user.getId());
+        appGroupService.getGroupDetails(inviteCode, user.getId()); // Valida se é membro
+        List<ExpenseResponse> expenses = expenseService.getGroupExpenses(inviteCode, user.getId());
         return ResponseEntity.ok(expenses);
     }
 
-    @PutMapping("/{groupId}/stops/reorder")
+    @PutMapping("/{inviteCode}/stops/reorder")
     public ResponseEntity<Void> reorderStops(
         @AuthenticationPrincipal User user,
-        @PathVariable UUID groupId,
+        @PathVariable String inviteCode,
         @Valid @RequestBody ReorderStopsRequest request
     ) {
-        groupService.reorderStops(groupId, request.stopIdsInOrder(), user);
+        appGroupService.reorderStops(inviteCode, request.stopIdsInOrder(), user);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{groupId}/stops/delete-batch")
+    @PostMapping("/{inviteCode}/stops/delete-batch")
     public ResponseEntity<Void> removeStopsBatch(
         @AuthenticationPrincipal User user,
-        @PathVariable UUID groupId,
+        @PathVariable String inviteCode,
         @Valid @RequestBody RemoveStopsRequest request
     ) {
-        groupService.removeStopsBatch(groupId, request.stopIdsToRemove(), user);
+        appGroupService.removeStopsBatch(inviteCode, request.stopIdsToRemove(), user);
         return ResponseEntity.ok().build();
     }
 }

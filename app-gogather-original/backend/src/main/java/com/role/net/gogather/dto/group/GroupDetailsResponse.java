@@ -2,12 +2,9 @@ package com.role.net.gogather.dto.group;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
-
-import com.role.net.gogather.enums.GroupRole;
 
 public record GroupDetailsResponse(
-    UUID externalId,
+    String id, // Alterado de UUID para String
     String name,
     String description,
     String inviteCode,
@@ -17,14 +14,15 @@ public record GroupDetailsResponse(
     List<EventStopDTO> eventStops
 ) {
     public record MemberDTO(
-		UUID externalId,
-		String username,
-		String displayName,
-		GroupRole role,
-		String email
-	) {}
+        String id,
+        String username,
+        String displayName,
+        String role,
+        String email
+    ) {}
 
     public record EventStopDTO(
+        String id,
         String name,
         Double latitude,
         Double longitude,

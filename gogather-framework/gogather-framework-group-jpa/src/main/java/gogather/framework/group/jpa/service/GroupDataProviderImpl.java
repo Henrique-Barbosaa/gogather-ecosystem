@@ -36,7 +36,7 @@ public class GroupDataProviderImpl implements GroupDataProvider {
     @Override
     public void save(Group group) {
         if (group instanceof BaseGroup) {
-            //usamos CascadeType.ALL no BaseGroup, ao salvar o grupo, o novo membro é salvo junto
+            //CascadeType.ALL no BaseGroup, ao salvar o grupo, o novo membro é salvo junto
             groupRepository.save((BaseGroup) group);
         }
     }
