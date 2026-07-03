@@ -54,7 +54,7 @@ public class AuthController {
             new RegisterUserResponse(
                 newUser.getUsername(),
                 newUser.getEmail(),
-                newUser.getDisplayName()
+                newUser.getName()
             )
         );
     }
