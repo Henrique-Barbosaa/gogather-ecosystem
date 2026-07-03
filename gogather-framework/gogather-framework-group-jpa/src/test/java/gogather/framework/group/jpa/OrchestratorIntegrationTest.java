@@ -46,10 +46,9 @@ public class OrchestratorIntegrationTest {
         assertEquals(1, grupoSalvo.getMembers().size());
         assertEquals(GroupRole.ADMIN, grupoSalvo.getMembers().get(0).getRole());
 
-        orchestrator.inviteUserToGroup(
+        orchestrator.joinGroup(
                 grupoSalvo.getInviteCode(),      // O Core busca o grupo pelo inviteCode
-                convidado.getId().toString(),    // O Core busca o usuário pelo ID string
-                null                             // Sem convidador (ex: entrou por link)
+                convidado.getId().toString()     // O Core busca o usuário pelo ID string
         );
 
         MockGroup grupoAtualizado = groupRepository.findById(grupoSalvo.getId()).orElseThrow();

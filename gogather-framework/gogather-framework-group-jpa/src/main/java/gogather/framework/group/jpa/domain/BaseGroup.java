@@ -107,7 +107,7 @@ public abstract class BaseGroup implements Group {
     }
 
     @Override
-    public void addPendingParticipant(Participant participant, Participant addedBy) {
+    public void addMember(Participant participant, Participant addedBy) {
         // O Orquestrador chama isso, e a própria Entidade cria a relação para o JPA salvar
         GroupMember novoMembro = new GroupMember();
         novoMembro.setGroup(this);

@@ -13,13 +13,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketAuthInterceptor webSocketAuthInterceptor;
     private final WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor;
+    private final com.role.net.tripmaker.interceptor.PollDetectorInterceptor pollDetectorInterceptor;
 
     public WebSocketConfig(
             WebSocketAuthInterceptor webSocketAuthInterceptor,
-            WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor
+            WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor,
+            com.role.net.tripmaker.interceptor.PollDetectorInterceptor pollDetectorInterceptor
     ) {
         this.webSocketAuthInterceptor = webSocketAuthInterceptor;
         this.webSocketAuthChannelInterceptor = webSocketAuthChannelInterceptor;
+        this.pollDetectorInterceptor = pollDetectorInterceptor;
     }
 
     @Override
@@ -38,6 +41,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(webSocketAuthChannelInterceptor);
+        registration.interceptors(webSocketAuthChannelInterceptor, pollDetectorInterceptor);
     }
 }
