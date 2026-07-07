@@ -24,6 +24,9 @@ public class PixInfo extends BaseEntity implements PixRecipient {
     @Column(nullable = false, unique = true)
     private String pixKey;
 
+    @Column(name = "pix_type")
+    private String pixType;
+
     @NotBlank(message = "Nome do beneficiário é obrigatório.")
     @Column(nullable = false)
     private String merchantName;

@@ -10,17 +10,17 @@ import com.role.net.tripmaker.repository.TripGroupRepository;
 import gogather.framework.chat.dto.ChatMessageDTO;
 import gogather.framework.chat.dto.SendMessageCommand;
 import gogather.framework.chat.orchestrator.ChatOrchestrator;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.role.net.tripmaker.entity.Group;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/groups/{inviteCode}/chat")
+@RequestMapping("/groups/{idOrCode}/chat")
 public class ChatController {
 
     private final ChatOrchestrator chatOrchestrator;
@@ -38,14 +38,14 @@ public class ChatController {
 
     @PostMapping
     public ResponseEntity<ChatMessageResponse> sendMessage(
-            @PathVariable String inviteCode,
+            @PathVariable String idOrCode,
             @RequestBody ChatMessageRequest request,
             @AuthenticationPrincipal User user) {
         
         Map<String, Object> metadata = new HashMap<>();
 
         SendMessageCommand command = new SendMessageCommand(
-                inviteCode,
+                idOrCode,
                 String.valueOf(user.getId()),
                 request.content(),
                 metadata
@@ -60,18 +60,36 @@ public class ChatController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ChatMessageResponse>> getMessages(
-            @PathVariable String inviteCode,
-            @AuthenticationPrincipal User user,
-            Pageable pageable) {
+    public ResponseEntity<List<ChatMessageResponse>> getMessages(
+            @PathVariable String idOrCode,
+            @AuthenticationPrincipal User user) {
         
-        if (!groupRepository.isGroupMemberByInviteCode(inviteCode, user.getId())) {
+        Group group = null;
+        boolean isMember = false;
+        try {
+            Long id = Long.parseLong(idOrCode);
+            group = groupRepository.findById(id).orElse(null);
+            if (group != null) {
+                isMember = groupRepository.isGroupMember(id, user.getId());
+            }
+        } catch (NumberFormatException e) {
+            // Not numeric, lookup by invite code
+        }
+        if (group == null) {
+            group = groupRepository.findByInviteCode(idOrCode).orElse(null);
+            if (group != null) {
+                isMember = groupRepository.isGroupMemberByInviteCode(idOrCode, user.getId());
+            }
+        }
+        if (group == null || !isMember) {
             throw new SecurityException("Você não é membro desta viagem.");
         }
 
-        Page<ChatMessageResponse> messages = chatMessageRepository
-                .findByGroupInviteCodeOrderByCreatedAtDesc(inviteCode, pageable)
-                .map(ChatMessageResponse::from);
+        List<ChatMessageResponse> messages = chatMessageRepository
+                .findByGroupIdOrderByCreatedAtAsc(group.getId())
+                .stream()
+                .map(ChatMessageResponse::from)
+                .toList();
 
         return ResponseEntity.ok(messages);
     }

@@ -8,5 +8,6 @@ public record CreateGroupRequest(
     String destination,
     LocalDate startDate,
     LocalDate endDate,
-    Integer maxTravelers
+    Integer maxTravelers,
+    String coverUrl
 ) {}

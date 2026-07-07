@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import org.springframework.context.annotation.Lazy;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class PollDetectorInterceptor implements ChannelInterceptor {
 
     private final PollService pollService;
 
-    public PollDetectorInterceptor(PollService pollService) {
+    public PollDetectorInterceptor(@Lazy PollService pollService) {
         this.pollService = pollService;
     }
 

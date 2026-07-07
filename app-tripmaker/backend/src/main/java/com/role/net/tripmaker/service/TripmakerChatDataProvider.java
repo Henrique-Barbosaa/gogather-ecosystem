@@ -31,14 +31,31 @@ public class TripmakerChatDataProvider implements ChatDataProvider {
 
     @Override
     public boolean canAccessRoom(String roomId, String senderId) {
-        // roomId is the inviteCode for Tripmaker
-        return groupRepository.isGroupMemberByInviteCode(roomId, Long.parseLong(senderId));
+        Long userId = Long.parseLong(senderId);
+        try {
+            Long id = Long.parseLong(roomId);
+            if (groupRepository.isGroupMember(id, userId)) {
+                return true;
+            }
+        } catch (NumberFormatException e) {
+            // Not numeric
+        }
+        return groupRepository.isGroupMemberByInviteCode(roomId, userId);
     }
 
     @Override
     public ChatMessageDTO persistMessage(SendMessageCommand command) {
-        Group group = groupRepository.findByInviteCode(command.roomId())
-                .orElseThrow(() -> new ResourceNotFoundException("Viagem não encontrada."));
+        Group group = null;
+        try {
+            Long id = Long.parseLong(command.roomId());
+            group = groupRepository.findById(id).orElse(null);
+        } catch (NumberFormatException e) {
+            // Not numeric
+        }
+        if (group == null) {
+            group = groupRepository.findByInviteCode(command.roomId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Viagem não encontrada."));
+        }
 
         User sender = null;
         if (command.senderId() != null) {

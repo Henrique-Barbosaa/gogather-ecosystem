@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/trips/{groupId}/itinerary")
+@RequestMapping({"/api/trips/{groupId}/itinerary", "/groups/{groupId}/itinerary"})
 public class ItineraryController {
 
     private final ItineraryService itineraryService;
@@ -25,7 +25,7 @@ public class ItineraryController {
 
     @PostMapping
     public ResponseEntity<ItineraryResponse> createEvent(
-            @PathVariable Long groupId,
+            @PathVariable String groupId,
             @Valid @RequestBody CreateItineraryRequest request,
             @AuthenticationPrincipal User loggedUser) {
         ItineraryEvent saved = itineraryService.createEvent(groupId, request, loggedUser);
@@ -34,7 +34,7 @@ public class ItineraryController {
 
     @GetMapping
     public ResponseEntity<List<ItineraryResponse>> getEvents(
-            @PathVariable Long groupId,
+            @PathVariable String groupId,
             @AuthenticationPrincipal User loggedUser) {
         List<ItineraryResponse> responses = itineraryService.getEvents(groupId, loggedUser).stream()
                 .map(ItineraryResponse::from)
@@ -44,10 +44,22 @@ public class ItineraryController {
 
     @DeleteMapping("/{eventId}")
     public ResponseEntity<Void> deleteEvent(
-            @PathVariable Long groupId,
+            @PathVariable String groupId,
             @PathVariable Long eventId,
             @AuthenticationPrincipal User loggedUser) {
         itineraryService.deleteEvent(groupId, eventId, loggedUser);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{eventId}/sequence/{newIndex}")
+    public ResponseEntity<List<ItineraryResponse>> reorderEvent(
+            @PathVariable String groupId,
+            @PathVariable Long eventId,
+            @PathVariable int newIndex,
+            @AuthenticationPrincipal User loggedUser) {
+        List<ItineraryResponse> responses = itineraryService.reorderEvents(groupId, eventId, newIndex, loggedUser).stream()
+                .map(ItineraryResponse::from)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 }

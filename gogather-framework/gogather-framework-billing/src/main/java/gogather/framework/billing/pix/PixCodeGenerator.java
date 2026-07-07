@@ -62,7 +62,8 @@ public class PixCodeGenerator {
 
         // 26: Merchant Account Information (Específico do Pix)
         String gui = "0014br.gov.bcb.pix";
-        String formattedKey = "01" + String.format("%02d", pixKey.length()) + pixKey;
+        String cleanKey = formatPixKey(pixKey);
+        String formattedKey = "01" + String.format("%02d", cleanKey.length()) + cleanKey;
         String merchantAccount = gui + formattedKey;
         pix.append("26").append(String.format("%02d", merchantAccount.length())).append(merchantAccount);
 
@@ -118,19 +119,81 @@ public class PixCodeGenerator {
         return String.format("%04X", crc & 0xFFFF).toUpperCase();
     }
 
+    public static String formatPixKey(String key) {
+        if (key == null || key.isBlank()) return "";
+        key = key.trim();
+        if (key.contains("@")) {
+            return key.toLowerCase();
+        }
+
+        boolean isPhone = false;
+        if (key.startsWith("+") || key.contains("(") || key.contains(")") || key.contains(" ") || key.contains("-")) {
+            // Se contém caracteres típicos de telefone (exceto pontos de CPF/CNPJ)
+            String digitsOnly = key.replaceAll("[^0-9]", "");
+            if (digitsOnly.length() >= 10 && digitsOnly.length() <= 13) {
+                // CPFs normalmente não usam parênteses, espaço ou têm esse tamanho de dígitos sem pontos
+                if (!key.contains(".")) {
+                    isPhone = true;
+                }
+            }
+        }
+
+        if (!isPhone) {
+            String digitsOnly = key.replaceAll("[^0-9]", "");
+            if (digitsOnly.length() == 10) {
+                isPhone = true;
+            } else if (digitsOnly.length() == 11) {
+                try {
+                    int ddd = Integer.parseInt(digitsOnly.substring(0, 2));
+                    char thirdDigit = digitsOnly.charAt(2);
+                    if (ddd >= 11 && ddd <= 99 && thirdDigit == '9') {
+                        isPhone = true;
+                    }
+                } catch (Exception ignored) {}
+            } else if ((digitsOnly.length() == 12 || digitsOnly.length() == 13) && digitsOnly.startsWith("55")) {
+                isPhone = true;
+            }
+        }
+
+        if (isPhone) {
+            String digits = key.replaceAll("[^0-9]", "");
+            if (digits.startsWith("55") && (digits.length() == 12 || digits.length() == 13)) {
+                return "+" + digits;
+            }
+            return "+55" + digits;
+        }
+
+        // Caso padrão para CPF, CNPJ ou chave aleatória (EVP)
+        return key.replaceAll("[\\s\\.\\-\\(\\)\\/]", "");
+    }
+
     public static String formatName(String name) {
-        String normalName = Normalizer.normalize(name, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");
-        String cleanName = normalName.replaceAll("[^a-zA-Z ]", "");
+        if (name == null || name.isBlank()) {
+            return "BENEFICIARIO";
+        }
+        String normalName = Normalizer.normalize(name, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String semAcentos = pattern.matcher(normalName).replaceAll("");
+        
+        String cleanName = semAcentos.replaceAll("[^a-zA-Z0-9 ]", "").toUpperCase().trim();
+        
+        String[] words = cleanName.split("\\s+");
+        if (words.length >= 2) {
+            cleanName = words[0] + " " + words[1];
+        } else if (words.length == 1) {
+            cleanName = words[0];
+        } else {
+            cleanName = "BENEFICIARIO";
+        }
 
         if (cleanName.length() > 25) {
             return cleanName.substring(0, 25).trim();
         }
-        return cleanName.trim();
+        return cleanName;
     }
 
     public static String formatText(String text, int maxLength) {
-        if (text == null) return "";
+        if (text == null || text.isBlank()) return "BRASILIA";
 
         String nfdNormalizedString = Normalizer.normalize(text, Normalizer.Form.NFD);
         Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
@@ -138,6 +201,10 @@ public class PixCodeGenerator {
         String apenasLetrasENumeros = semAcentos.replaceAll("[^a-zA-Z0-9 ]", "");
 
         String resultado = apenasLetrasENumeros.toUpperCase().trim();
+
+        if (resultado.isEmpty()) {
+            resultado = "BRASILIA";
+        }
 
         if (resultado.length() > maxLength) {
             return resultado.substring(0, maxLength).trim();

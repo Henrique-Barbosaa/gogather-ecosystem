@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fffbfa;
+  --foreground: #2d2327;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  /* Pastel Red Palette */
+  --color-pastel-red: #FF8BA7;
+  --color-pastel-red-50: #FFF0F3;
+  --color-pastel-red-100: #FFE0E9;
+  --color-pastel-red-200: #FFC6D3;
+  --color-pastel-red-300: #FFA8BD;
+  --color-pastel-red-400: #FF8BA7;
+  --color-pastel-red-500: #F36889;
+  --color-pastel-red-600: #E05A7E;
+  --color-pastel-red-700: #B83A5D;
+  --color-pastel-red-800: #8C2442;
+
+  /* Pastel Yellow Palette */
+  --color-pastel-yellow: #FAEE9E;
+  --color-pastel-yellow-50: #FFFEF2;
+  --color-pastel-yellow-100: #FCF7CD;
+  --color-pastel-yellow-200: #FBF2B7;
+  --color-pastel-yellow-300: #FAEE9E;
+  --color-pastel-yellow-400: #EFE07E;
+  --color-pastel-yellow-500: #D4C35E;
+  --color-pastel-yellow-600: #B3A13E;
+  --color-pastel-yellow-700: #8A7A25;
+
+  /* Soft Neutrals for Cards & Backgrounds */
+  --color-soft-cream: #FFFDF9;
+  --color-soft-gray: #F5F1F2;
+  --color-border-subtle: #F0E6EA;
+}
+
+body {
+  background: linear-gradient(135deg, #fffbfa 0%, #fff7f3 50%, #fefcf3 100%);
+  color: var(--foreground);
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Glassmorphism & Custom Utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 139, 167, 0.15);
+}
+
+.glass-navbar {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 139, 167, 0.18);
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #fff0f3;
+}
+::-webkit-scrollbar-thumb {
+  background: #ffc6d3;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff8ba7;
+}

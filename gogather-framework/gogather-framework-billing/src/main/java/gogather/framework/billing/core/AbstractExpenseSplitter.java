@@ -39,9 +39,16 @@ public abstract class AbstractExpenseSplitter {
         Map<String, Long> paidAmounts = calculatePaidAmounts(contributions);
         Map<String, Long> owedAmounts = calculateOwedAmounts(totalCents, participants, contributions);
 
+        List<Participant> allInvolvedParticipants = new ArrayList<>(participants);
+        for (Contribution c : contributions) {
+            if (allInvolvedParticipants.stream().noneMatch(p -> p.getIdentifier().equals(c.participant().getIdentifier()))) {
+                allInvolvedParticipants.add(c.participant());
+            }
+        }
+
         List<ParticipantValue> receivers = new ArrayList<>();
         List<ParticipantValue> payers = new ArrayList<>();
-        categorizeParticipants(participants, paidAmounts, owedAmounts, receivers, payers);
+        categorizeParticipants(allInvolvedParticipants, paidAmounts, owedAmounts, receivers, payers);
 
         return settleDebts(receivers, payers);
     }

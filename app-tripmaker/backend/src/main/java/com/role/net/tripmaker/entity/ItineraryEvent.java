@@ -1,5 +1,6 @@
 package com.role.net.tripmaker.entity;
 
+import gogather.framework.sequence.SequencedItem;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ItineraryEvent extends BaseEntity {
+public class ItineraryEvent extends BaseEntity implements SequencedItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
@@ -28,10 +29,19 @@ public class ItineraryEvent extends BaseEntity {
     @Column(length = 1000)
     private String description;
 
-    @Column(name = "start_time", nullable = false)
+    @Column(length = 50)
+    private String day;
+
+    @Column(length = 20)
+    private String time;
+
+    @Column(length = 50)
+    private String category;
+
+    @Column(name = "start_time", nullable = true)
     private LocalDateTime startTime;
 
-    @Column(name = "end_time", nullable = false)
+    @Column(name = "end_time", nullable = true)
     private LocalDateTime endTime;
 
     @Column(length = 300)
@@ -39,5 +49,8 @@ public class ItineraryEvent extends BaseEntity {
 
     @Column(name = "cost_estimate_cents")
     private Long costEstimateCents;
+
+    @Column(name = "sequence_order")
+    private Integer sequenceOrder;
 
 }

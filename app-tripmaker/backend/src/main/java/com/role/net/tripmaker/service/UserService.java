@@ -24,6 +24,7 @@ public class UserService {
             user.setPixInfo(
                 PixInfo.builder()
                     .pixKey(request.pixKey())
+                    .pixType(request.pixType() != null ? request.pixType() : "CPF")
                     .merchantName(request.merchantName())
                     .merchantCity(request.merchantCity())
                     .user(user)
@@ -31,10 +32,30 @@ public class UserService {
             );
         } else {
             user.getPixInfo().setPixKey(request.pixKey());
+            if (request.pixType() != null && !request.pixType().isBlank()) {
+                user.getPixInfo().setPixType(request.pixType());
+            }
             user.getPixInfo().setMerchantName(request.merchantName());
             user.getPixInfo().setMerchantCity(request.merchantCity());
         }
 
         userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateProfile(Long loggedUserId, com.role.net.tripmaker.dto.user.UpdateProfileRequest request) {
+        User user = userRepository.findById(loggedUserId)
+            .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
+
+        if (request.name() != null && !request.name().isBlank()) {
+            user.setName(request.name());
+        }
+        if (request.email() != null && !request.email().isBlank()) {
+            user.setEmail(request.email());
+        }
+        if (request.bio() != null) {
+            user.setBio(request.bio());
+        }
+        return userRepository.save(user);
     }
 }

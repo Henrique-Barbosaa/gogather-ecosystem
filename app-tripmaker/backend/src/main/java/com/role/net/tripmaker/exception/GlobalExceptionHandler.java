@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -93,6 +94,38 @@ public class GlobalExceptionHandler {
             status.value(),
             "Requisição inválida",
             e.getMessage(),
+            request.getRequestURI()
+        );
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<StandardErrorDTO> notReadable(
+        HttpMessageNotReadableException e,
+        HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        StandardErrorDTO err = new StandardErrorDTO(
+            Instant.now(),
+            status.value(),
+            "Requisição mal formatada",
+            "Categoria de despesa ou formato dos dados enviado é inválido. Verifique se escolheu uma categoria permitida.",
+            request.getRequestURI()
+        );
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<StandardErrorDTO> generalException(
+        Exception e,
+        HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        StandardErrorDTO err = new StandardErrorDTO(
+            Instant.now(),
+            status.value(),
+            "Erro interno no servidor",
+            e.getMessage() != null ? e.getMessage() : "Ocorreu um erro inesperado ao processar sua requisição.",
             request.getRequestURI()
         );
         return ResponseEntity.status(status).body(err);

@@ -34,7 +34,7 @@ public class PixCodeGeneratorTest {
         assertTrue(pixCode.contains("5303986")); // BRL Currency
         assertTrue(pixCode.contains("5406150.50")); // Amount
         assertTrue(pixCode.contains("5802BR")); // Country BR
-        assertTrue(pixCode.contains("Joao da Silva")); // Name without accent
+        assertTrue(pixCode.contains("JOAO DA")); // Name uppercase without accent (first 2 names)
         assertTrue(pixCode.contains("SAO PAULO")); // City upper without accent
         assertTrue(pixCode.contains("6304")); // CRC tag
     }
@@ -82,5 +82,15 @@ public class PixCodeGeneratorTest {
         assertEquals(4, crc.length());
         // Verify hexadecimal characters
         assertTrue(crc.matches("^[0-9A-F]{4}$"));
+    }
+
+    @Test
+    public void testPhoneKeyFormatting() {
+        assertEquals("+5511999999999", PixCodeGenerator.formatPixKey("+5511999999999"));
+        assertEquals("+5511999999999", PixCodeGenerator.formatPixKey("5511999999999"));
+        assertEquals("+5511999999999", PixCodeGenerator.formatPixKey("(11) 99999-9999"));
+        assertEquals("+5511999999999", PixCodeGenerator.formatPixKey("11999999999"));
+        assertEquals("+551133334444", PixCodeGenerator.formatPixKey("1133334444")); // Landline
+        assertEquals("12345678900", PixCodeGenerator.formatPixKey("123.456.789-00")); // CPF (should not be treated as phone)
     }
 }

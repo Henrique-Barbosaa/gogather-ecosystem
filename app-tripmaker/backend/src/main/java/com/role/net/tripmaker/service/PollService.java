@@ -9,6 +9,7 @@ import com.role.net.tripmaker.repository.TripGroupRepository;
 import com.role.net.tripmaker.repository.PollOptionRepository;
 import com.role.net.tripmaker.repository.PollRepository;
 import gogather.framework.polling.orchestrator.PollingOrchestrator;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +32,7 @@ public class PollService {
             PollRepository pollRepository,
             PollOptionRepository pollOptionRepository,
             PollingOrchestrator pollingOrchestrator,
-            SimpMessagingTemplate messagingTemplate
+            @Lazy SimpMessagingTemplate messagingTemplate
     ) {
         this.groupRepository = groupRepository;
         this.chatMessageRepository = chatMessageRepository;

@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
   application:
     name: Tripmaker
   ai:
@@ -8,8 +10,8 @@ spring:
     import: optional:classpath:secret.yaml
   datasource:
     url: jdbc:postgresql://localhost:5432/tripmaker
-    username: ${db.username:postgres}
-    password: ${db.password:password}
+    username: ${db.username:${DB_USER:postgres}}
+    password: ${db.password:${DB_PASS:password}}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

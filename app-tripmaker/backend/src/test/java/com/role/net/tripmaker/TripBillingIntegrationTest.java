@@ -59,7 +59,7 @@ public class TripBillingIntegrationTest {
         bob = userRepository.save(bob);
 
         // 2. Register Pix key for Alice
-        userService.registerPix(alice.getId(), new RegisterPixKeyRequest("alice@pix.com", "Alice Souza", "Sao Paulo"));
+        userService.registerPix(alice.getId(), new RegisterPixKeyRequest("alice@pix.com", "EMAIL", "Alice Souza", "Sao Paulo"));
         alice = userRepository.findById(alice.getId()).orElseThrow();
         assertNotNull(alice.getPixInfo());
         assertEquals("alice@pix.com", alice.getPixInfo().getPixKey());
@@ -103,7 +103,12 @@ public class TripBillingIntegrationTest {
         TripDebtResponse updatedDebt = billingService.updateDebtStatus(trip.getId(), debt.id(), DebtStatus.AWAITING_CONFIRMATION, bob);
         assertEquals(DebtStatus.AWAITING_CONFIRMATION, updatedDebt.status());
 
-        // 7. Alice confirms payment receipt (PAID)
+        // 7. Alice denies payment confirmation, sending status back to PENDING
+        updatedDebt = billingService.updateDebtStatus(trip.getId(), debt.id(), DebtStatus.PENDING, alice);
+        assertEquals(DebtStatus.PENDING, updatedDebt.status());
+
+        // 8. Bob reports payment again (AWAITING_CONFIRMATION) and Alice confirms payment receipt (PAID)
+        updatedDebt = billingService.updateDebtStatus(trip.getId(), debt.id(), DebtStatus.AWAITING_CONFIRMATION, bob);
         updatedDebt = billingService.updateDebtStatus(trip.getId(), debt.id(), DebtStatus.PAID, alice);
         assertEquals(DebtStatus.PAID, updatedDebt.status());
 

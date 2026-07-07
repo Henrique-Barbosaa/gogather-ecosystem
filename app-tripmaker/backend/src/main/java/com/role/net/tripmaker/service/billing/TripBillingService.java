@@ -36,10 +36,28 @@ public class TripBillingService {
     private final BillingOrchestrator billingOrchestrator;
     private final PixCodeGenerator pixCodeGenerator;
 
+    private Group resolveGroup(String idOrCode) {
+        try {
+            Long id = Long.parseLong(idOrCode);
+            Group group = groupRepository.findById(id).orElse(null);
+            if (group != null) {
+                return group;
+            }
+        } catch (NumberFormatException e) {
+            // Not numeric, look up by invite code
+        }
+        return groupRepository.findByInviteCode(idOrCode)
+            .orElseThrow(() -> new ResourceNotFoundException("Viagem não encontrada: " + idOrCode));
+    }
+
     @Transactional
     public TripExpenseResponse createExpense(Long tripId, CreateExpenseRequest request, User loggedUser) {
-        Group trip = groupRepository.findById(tripId)
-            .orElseThrow(() -> new ResourceNotFoundException("Viagem não encontrada."));
+        return createExpense(String.valueOf(tripId), request, loggedUser);
+    }
+
+    @Transactional
+    public TripExpenseResponse createExpense(String tripIdOrCode, CreateExpenseRequest request, User loggedUser) {
+        Group trip = resolveGroup(tripIdOrCode);
 
         if (!trip.hasMember(loggedUser.getId().toString())) {
             throw new ResourceNotFoundException("Você não é membro desta viagem.");
@@ -68,8 +86,8 @@ public class TripBillingService {
                 throw new IllegalArgumentException("O contribuinte " + contributorUser.getUsername() + " não é membro desta viagem.");
             }
 
-            if (contributorUser.getPixInfo() == null || contributorUser.getPixInfo().getPixKey() == null) {
-                throw new IllegalArgumentException("O contribuinte " + contributorUser.getUsername() + " não possui uma chave Pix cadastrada. É necessário cadastrar a chave Pix antes de adicioná-lo como contribuinte.");
+            if (contributorUser.getPixInfo() == null || contributorUser.getPixInfo().getPixKey() == null || contributorUser.getPixInfo().getPixKey().trim().isEmpty()) {
+                throw new IllegalArgumentException("O contribuinte " + contributorUser.getUsername() + " não possui uma chave Pix cadastrada. É obrigatório que todos os contribuidores tenham chave Pix cadastrada no perfil antes de registrar despesas.");
             }
 
             TripExpenseContribution contribution = TripExpenseContribution.builder()
@@ -109,38 +127,52 @@ public class TripBillingService {
 
     @Transactional(readOnly = true)
     public List<TripExpenseResponse> getTripExpenses(Long tripId, User loggedUser) {
-        Group trip = groupRepository.findById(tripId)
-            .orElseThrow(() -> new ResourceNotFoundException("Viagem não encontrada."));
+        return getTripExpenses(String.valueOf(tripId), loggedUser);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TripExpenseResponse> getTripExpenses(String tripIdOrCode, User loggedUser) {
+        Group trip = resolveGroup(tripIdOrCode);
 
         if (!trip.hasMember(loggedUser.getId().toString())) {
             throw new ResourceNotFoundException("Você não é membro desta viagem.");
         }
 
-        return expenseRepository.findByTripIdOrderByExpenseDateDesc(tripId).stream()
+        return expenseRepository.findByTripIdOrderByExpenseDateDesc(trip.getId()).stream()
             .map(TripExpenseResponse::from)
             .toList();
     }
 
     @Transactional(readOnly = true)
     public List<TripDebtResponse> getTripDebts(Long tripId, User loggedUser) {
-        Group trip = groupRepository.findById(tripId)
-            .orElseThrow(() -> new ResourceNotFoundException("Viagem não encontrada."));
+        return getTripDebts(String.valueOf(tripId), loggedUser);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TripDebtResponse> getTripDebts(String tripIdOrCode, User loggedUser) {
+        Group trip = resolveGroup(tripIdOrCode);
 
         if (!trip.hasMember(loggedUser.getId().toString())) {
             throw new ResourceNotFoundException("Você não é membro desta viagem.");
         }
 
-        return debtRepository.findByExpenseTripId(tripId).stream()
+        return debtRepository.findByExpenseTripId(trip.getId()).stream()
             .map(TripDebtResponse::from)
             .toList();
     }
 
     @Transactional
     public TripDebtResponse updateDebtStatus(Long tripId, Long debtId, DebtStatus newStatus, User loggedUser) {
+        return updateDebtStatus(String.valueOf(tripId), debtId, newStatus, loggedUser);
+    }
+
+    @Transactional
+    public TripDebtResponse updateDebtStatus(String tripIdOrCode, Long debtId, DebtStatus newStatus, User loggedUser) {
+        Group trip = resolveGroup(tripIdOrCode);
         TripDebt debt = debtRepository.findById(debtId)
             .orElseThrow(() -> new ResourceNotFoundException("Dívida não encontrada."));
 
-        if (!debt.getExpense().getTrip().getId().equals(tripId)) {
+        if (!debt.getExpense().getTrip().getId().equals(trip.getId())) {
             throw new IllegalArgumentException("Dívida não pertence à viagem informada.");
         }
 
@@ -152,9 +184,9 @@ public class TripBillingService {
             if (!debt.getCreditor().getId().equals(loggedUser.getId())) {
                 throw new IllegalArgumentException("Apenas o credor pode confirmar o recebimento do pagamento.");
             }
-        } else if (newStatus == DebtStatus.CANCELLED) {
+        } else if (newStatus == DebtStatus.CANCELLED || newStatus == DebtStatus.PENDING) {
             if (!debt.getCreditor().getId().equals(loggedUser.getId()) && !debt.getDebtor().getId().equals(loggedUser.getId())) {
-                throw new IllegalArgumentException("Apenas os envolvidos na dívida podem cancelá-la.");
+                throw new IllegalArgumentException("Apenas os envolvidos na dívida podem alterar este status.");
             }
         }
 
@@ -165,10 +197,16 @@ public class TripBillingService {
 
     @Transactional(readOnly = true)
     public PixCodeResponse generatePixCodeForDebt(Long tripId, Long debtId, User loggedUser) {
+        return generatePixCodeForDebt(String.valueOf(tripId), debtId, loggedUser);
+    }
+
+    @Transactional(readOnly = true)
+    public PixCodeResponse generatePixCodeForDebt(String tripIdOrCode, Long debtId, User loggedUser) {
+        Group trip = resolveGroup(tripIdOrCode);
         TripDebt debt = debtRepository.findById(debtId)
             .orElseThrow(() -> new ResourceNotFoundException("Dívida não encontrada."));
 
-        if (!debt.getExpense().getTrip().getId().equals(tripId)) {
+        if (!debt.getExpense().getTrip().getId().equals(trip.getId())) {
             throw new IllegalArgumentException("Dívida não pertence à viagem informada.");
         }
 

@@ -57,8 +57,8 @@ public class TripService {
         Group group = validateMembership(groupId, loggedUser);
 
         // Upcoming Itinerary Events
-        List<ItineraryResponse> upcomingEvents = itineraryService.getEvents(groupId, loggedUser).stream()
-                .filter(e -> e.getStartTime().isAfter(LocalDateTime.now().minusHours(1))) // show from 1h ago onwards
+        List<ItineraryResponse> upcomingEvents = itineraryService.getEvents(String.valueOf(groupId), loggedUser).stream()
+                .filter(e -> e.getStartTime() == null || e.getStartTime().isAfter(LocalDateTime.now().minusHours(1))) // show from 1h ago onwards
                 .map(ItineraryResponse::from)
                 .toList();
 

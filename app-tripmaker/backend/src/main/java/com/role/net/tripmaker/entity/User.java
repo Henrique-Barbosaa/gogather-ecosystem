@@ -42,6 +42,9 @@ public class User extends BaseUser implements UserDetails {
     @Column(name = "birthdate")
     private LocalDate birthDate;
 
+    @Column(name = "bio")
+    private String bio;
+
     @Column(name = "active", nullable = false)
     private boolean active = true;
 

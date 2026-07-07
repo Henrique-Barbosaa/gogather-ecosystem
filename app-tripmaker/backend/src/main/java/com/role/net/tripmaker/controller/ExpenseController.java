@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/groups/{tripId}/expenses")
+@RequestMapping("/groups/{tripIdOrCode}/expenses")
 @RequiredArgsConstructor
 public class ExpenseController {
 
@@ -29,50 +29,50 @@ public class ExpenseController {
 
     @PostMapping
     public ResponseEntity<TripExpenseResponse> createExpense(
-        @PathVariable Long tripId,
+        @PathVariable String tripIdOrCode,
         @RequestBody @Valid CreateExpenseRequest request,
         @AuthenticationPrincipal User user
     ) {
-        TripExpenseResponse response = billingService.createExpense(tripId, request, user);
+        TripExpenseResponse response = billingService.createExpense(tripIdOrCode, request, user);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
     public ResponseEntity<List<TripExpenseResponse>> getTripExpenses(
-        @PathVariable Long tripId,
+        @PathVariable String tripIdOrCode,
         @AuthenticationPrincipal User user
     ) {
-        List<TripExpenseResponse> response = billingService.getTripExpenses(tripId, user);
+        List<TripExpenseResponse> response = billingService.getTripExpenses(tripIdOrCode, user);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/debts")
     public ResponseEntity<List<TripDebtResponse>> getTripDebts(
-        @PathVariable Long tripId,
+        @PathVariable String tripIdOrCode,
         @AuthenticationPrincipal User user
     ) {
-        List<TripDebtResponse> response = billingService.getTripDebts(tripId, user);
+        List<TripDebtResponse> response = billingService.getTripDebts(tripIdOrCode, user);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/debts/{debtId}/status")
     public ResponseEntity<TripDebtResponse> updateDebtStatus(
-        @PathVariable Long tripId,
+        @PathVariable String tripIdOrCode,
         @PathVariable Long debtId,
         @RequestBody @Valid UpdateDebtStatusRequest request,
         @AuthenticationPrincipal User user
     ) {
-        TripDebtResponse response = billingService.updateDebtStatus(tripId, debtId, request.status(), user);
+        TripDebtResponse response = billingService.updateDebtStatus(tripIdOrCode, debtId, request.status(), user);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/debts/{debtId}/pix-code")
     public ResponseEntity<PixCodeResponse> generatePixCodeForDebt(
-        @PathVariable Long tripId,
+        @PathVariable String tripIdOrCode,
         @PathVariable Long debtId,
         @AuthenticationPrincipal User user
     ) {
-        PixCodeResponse response = billingService.generatePixCodeForDebt(tripId, debtId, user);
+        PixCodeResponse response = billingService.generatePixCodeForDebt(tripIdOrCode, debtId, user);
         return ResponseEntity.ok(response);
     }
 }
