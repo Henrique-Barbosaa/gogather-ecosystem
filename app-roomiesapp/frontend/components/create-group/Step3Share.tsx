@@ -2,18 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, ExternalLink, PartyPopper, UserPlus, Loader2 } from "lucide-react";
+import { Check, Copy, ExternalLink, Home, UserPlus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { FriendData } from "@/app/types";
 
 interface StepShareProps {
-  roleName: string;
+  houseName: string;
   inviteCode: string;
   groupId: string;
 }
 
-export const Step3Share = ({ roleName, inviteCode, groupId }: StepShareProps) => {
+export const Step3Share = ({ houseName, inviteCode, groupId }: StepShareProps) => {
   const router = useRouter();
   
   const [copied, setCopied] = useState<boolean>(false);
@@ -59,7 +59,7 @@ export const Step3Share = ({ roleName, inviteCode, groupId }: StepShareProps) =>
 
   const handleWhatsApp = (): void => {
     const text = encodeURIComponent(
-      `🎉 Bora pro rolê "${roleName}"! Entre com o código: ${inviteCode}\n\nAcesse: ${inviteLink}`
+      `🏠 Bora organizar a nossa casa "${houseName}" no RoomiesApp! Entre com o código: ${inviteCode}\n\nAcesse: ${inviteLink}`
     );
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
@@ -69,27 +69,27 @@ export const Step3Share = ({ roleName, inviteCode, groupId }: StepShareProps) =>
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         
         <div className="text-center pt-10 pb-6 px-8">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-red-50 text-[#cc241a] mx-auto mb-4">
-            <PartyPopper className="h-8 w-8" />
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-purple-50 text-[#8724df] mx-auto mb-4">
+            <Home className="h-8 w-8" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Rolê criado com sucesso!</h2>
+          <h2 className="text-2xl font-bold text-gray-900">República criada com sucesso!</h2>
         </div>
 
         <div className="px-8 pb-8 space-y-6">
           
           <div className="space-y-4">
-            <p className="text-center text-sm font-medium text-gray-500">Compartilhe o código para convidar pessoas para o rolê.</p>
+            <p className="text-center text-sm font-medium text-gray-500">Compartilhe o código para adicionar seus colegas de quarto.</p>
             
-            <div className="bg-gray-50 rounded-xl border-2 border-dashed border-ra-green p-5 text-center space-y-1">
+            <div className="bg-gray-50 rounded-xl border-2 border-dashed border-[#299227] p-5 text-center space-y-1">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Código de Convite</p>
-              <p className="text-3xl font-black tracking-[0.2em] text-ra-green">{inviteCode}</p>
+              <p className="text-3xl font-black tracking-[0.2em] text-[#299227]">{inviteCode}</p>
             </div>
             
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={handleCopy}
-                className="flex-1 h-11 rounded-xl gap-2 font-semibold transition-all"
+                className="flex-1 h-11 rounded-xl gap-2 font-semibold transition-all hover:bg-gray-50"
               >
                 {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
                 {copied ? "Copiado!" : "Copiar Link"}
@@ -109,14 +109,14 @@ export const Step3Share = ({ roleName, inviteCode, groupId }: StepShareProps) =>
 
           <div className="flex items-center gap-4">
             <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs font-medium text-gray-400">ou convide seus amigos</span>
+            <span className="text-xs font-medium text-gray-400">ou convide seus amigos da rede</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
           <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 max-h-60 overflow-y-auto space-y-3">
             {loadingFriends ? (
               <div className="flex justify-center items-center py-4">
-                <Loader2 className="h-6 w-6 animate-spin text-[#cc241a]" />
+                <Loader2 className="h-6 w-6 animate-spin text-[#8724df]" />
               </div>
             ) : friends.length === 0 ? (
               <p className="text-center text-sm text-gray-500 py-2">Você ainda não tem amigos adicionados.</p>
@@ -135,7 +135,7 @@ export const Step3Share = ({ roleName, inviteCode, groupId }: StepShareProps) =>
                     className={
                       invitedFriends[friend.friendExternalId] === true 
                         ? "text-green-600 border-green-200 bg-green-50"
-                        : "bg-[#cc241a] hover:bg-gray-800 text-white"
+                        : "bg-[#8724df] hover:bg-[#6419a8] text-white"
                     }
                   >
                     {invitedFriends[friend.friendExternalId] === 'loading' ? (
@@ -165,10 +165,10 @@ export const Step3Share = ({ roleName, inviteCode, groupId }: StepShareProps) =>
 
           <Button
             onClick={() => router.push("/area/dashboard")}
-            className="w-full h-12 text-base font-semibold bg-[#cc241a] hover:bg-gray-800 text-white rounded-xl gap-2 transition-colors mt-2"
+            className="w-full h-12 text-base font-semibold bg-[#299227] hover:bg-[#1c661a] text-white rounded-xl gap-2 transition-colors mt-2"
           >
             <ExternalLink className="h-5 w-5" />
-            Ir para o painel do rolê
+            Ir para o painel da casa
           </Button>
 
         </div>

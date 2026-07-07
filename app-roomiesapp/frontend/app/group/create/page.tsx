@@ -1,29 +1,31 @@
 "use client";
 
-import { EventFormData, EventStop, Step } from "@/app/types";
+import { Step } from "@/app/types";
 import { Step1Info } from "@/components/create-group/Step1Info";
-import { Step2Map } from "@/components/create-group/Step2Map";
-import { Step3Share } from "@/components/create-group/Step3Share";
+import { Step3Share } from "@/components/create-group/Step3Share"; 
 import StepIndicator from "@/components/create-group/StepIndicator";
 import { api } from "@/lib/api";
 import axios from "axios";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Home, Share2 } from "lucide-react"; // Importei os ícones necessários
 import Link from "next/link";
 import React, { useState } from "react";
 
-export default function CreateRolePage() {
-  const [step, setStep] = useState<Step>(1);
+// Adicione esta constante aqui:
+const STEPS = [
+  { num: 1, label: "Detalhes" },
+  { num: 2, label: "Convite" },
+];
+
+export default function CreateHousePage() {
+  const [step, setStep] = useState<number>(1); // Mudei para number para ser compatível com o StepIndicator
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [generatedInviteCode, setGeneratedInviteCode] = useState<string>("");
   const [generatedGroupId, setGeneratedGroupId] = useState<string>("");
 
-  const [formData, setFormData] = useState<EventFormData>({
+  const [formData, setFormData] = useState({
     name: "",
-    date: "",
     description: "",
   });
-
-  const [stops, setStops] = useState<EventStop[]>([]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -34,17 +36,10 @@ export default function CreateRolePage() {
 
   const handleSubmitToBackend = async (): Promise<void> => {
     setIsSubmitting(true);
-    console.log("data: " + formData.date);
-    const dateAsInstant = new Date(formData.date).toISOString();
 
     const payload = {
       name: formData.name,
-      date: dateAsInstant,
       description: formData.description,
-      stops: stops.map((stop, index) => ({
-        ...stop,
-        order: index + 1,
-      })),
     };
 
     try {
@@ -58,16 +53,16 @@ export default function CreateRolePage() {
 
       setGeneratedInviteCode(data.inviteCode);
       setGeneratedGroupId(data.externalId);
-      setStep(3);
+      setStep(2); 
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage =
           error.response?.data?.message ||
           "Falha na comunicação com o servidor.";
-        console.error("Erro na API ao criar rolê:", errorMessage);
-        alert(`Erro ao criar rolê: ${errorMessage}`);
+        console.error("Erro na API ao criar casa:", errorMessage);
+        alert(`Erro ao criar casa: ${errorMessage}`);
       } else if (error instanceof Error) {
-        console.error("Erro interno ao criar rolê:", error.message);
+        console.error("Erro interno ao criar casa:", error.message);
         alert(`Erro: ${error.message}`);
       } else {
         console.error("Erro desconhecido:", error);
@@ -78,16 +73,15 @@ export default function CreateRolePage() {
   };
 
   return (
-    <main className=" h-screen bg-[#fbf2c7]/30 flex flex-col font-sans text-gray-900">
+    <main className="h-screen bg-[#e6f5ff]/30 flex flex-col font-sans text-gray-900">
       {isSubmitting && (
-        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-100 flex flex-col items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-[#cc241a] mb-4" />
-          <p className="text-lg font-bold text-gray-800">Criando seu rolê...</p>
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-[#8724df] mb-4" />
+          <p className="text-lg font-bold text-gray-800">Criando sua casa...</p>
         </div>
       )}
-	    <header className="w-full bg-white border-b border-gray-200 py-4 px-6 sticky top-0 z-50 shadow-sm">
+      <header className="w-full bg-white border-b border-gray-200 py-4 px-6 sticky top-0 z-50 shadow-sm">
         <div className="flex items-center justify-between">
-          
           <div className="flex-1 min-w-50">
             {step === 1 && (
               <Link
@@ -117,7 +111,7 @@ export default function CreateRolePage() {
           </div>
 
           <div className="hidden md:flex items-center gap-4 text-sm font-bold text-gray-400">
-            <StepIndicator current={step} />
+            <StepIndicator current={step} steps={STEPS} />
           </div>
 
           <div className="flex-1 hidden md:block"></div>
@@ -135,22 +129,13 @@ export default function CreateRolePage() {
           <Step1Info
             formData={formData}
             handleInputChange={handleInputChange}
-            onNext={() => setStep(2)}
-          />
-        )}
-
-        {step === 2 && (
-          <Step2Map
-            stops={stops}
-            setStops={setStops}
-            onBack={() => setStep(1)}
             onNext={handleSubmitToBackend}
           />
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <Step3Share
-            roleName={formData.name || "Novo Rolê"}
+            houseName={formData.name || "Nova República"}
             inviteCode={generatedInviteCode}
             groupId={generatedGroupId}
           />

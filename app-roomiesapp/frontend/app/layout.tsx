@@ -8,8 +8,8 @@ import { Providers } from "@/components/providers";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "GoGather",
-  description: "Encontre e compartilhe os melhores rolês da cidade",
+  title: "Roomiesapp",
+  description: "Sua república de forma descomplicada. Encontre, gerencie e compartilhe sua moradia com facilidade.",
 };
 import localFont from 'next/font/local';
 import './globals.css';

@@ -3,15 +3,15 @@ import React, { ElementType } from "react"
 interface InfoCardsProps {
   children: React.ReactNode;
   info: string;
-  color: 'cyan' | 'red' | 'beige';
+  color: 'purple' | 'green' | 'blue';
   className?: string;
   Icon?: ElementType;
 }
 
 const colors = {
-  cyan: 'bg-ra-green-extralight text-ra-green',
-  red: 'bg-ra-purple-extralight text-ra-purple',
-  beige: 'bg-ra-blue text-ra-blue-extradark'
+  purple: 'bg-ra-green-extralight text-ra-green',
+  green: 'bg-ra-purple-extralight text-ra-purple',
+  blue: 'bg-ra-blue text-ra-blue-extradark'
 }
 
 export function InfoCards({ children, info, color, className, Icon }: InfoCardsProps) {

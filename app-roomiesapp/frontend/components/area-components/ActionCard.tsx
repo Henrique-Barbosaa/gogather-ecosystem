@@ -5,24 +5,24 @@ interface ActionCardProps {
   title: string;
   children: React.ReactNode;
   footer: string;
-  color: 'cyan' | 'red' | 'beige';
+  color: 'purple' | 'green' | 'blue';
   href?: string;
   className?: string;
   Icon?: ElementType;
 }
 
 const colors = {
-  cyan: {
+  green: {
     hover: 'hover:border-ra-green',
     icon: 'bg-ra-green',
     text: 'text-ra-green'
   },
-  red: {
+  purple: {
     hover: 'hover:border-ra-purple',
     icon: 'bg-ra-purple',
     text: 'text-ra-purple'
   },
-  beige: {
+  blue: {
     hover: 'hover:border-ra-blue-extradark',
     icon: 'bg-ra-blue',
     text: 'text-ra-blue-extradark'

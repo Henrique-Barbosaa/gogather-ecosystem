@@ -138,3 +138,32 @@ export interface ExpenseData {
   contributions: ExpenseContribution[];
   distributions: ExpenseDistribution[];
 }
+
+export interface HouseBill {
+  id: string;
+  description: string;
+  totalValue: number;
+  dueDate: string;
+  billType: 'RENT' | 'ELECTRICITY' | 'WATER' | 'INTERNET' | 'OTHER';
+  status: 'PENDING' | 'PAID';
+  expenseDistributions?: ExpenseDistribution[];
+}
+
+export interface Chore {
+  id: string;
+  title: string;
+  assignedTo?: {
+    externalId: string;
+    displayName: string;
+  };
+  dueDate: string;
+  isCompleted: boolean;
+  points: number;
+}
+
+export interface HouseNotice {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+}
