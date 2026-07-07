@@ -8,9 +8,10 @@ import { useRouter } from "next/navigation";
 interface StepShareProps {
   houseName: string;
   inviteCode: string;
+  groupId: string;
 }
 
-export const Step3Share = ({ houseName, inviteCode }: StepShareProps) => {
+export const Step3Share = ({ houseName, inviteCode, groupId }: StepShareProps) => {
   const router = useRouter();
 
   const [copied, setCopied] = useState<boolean>(false);

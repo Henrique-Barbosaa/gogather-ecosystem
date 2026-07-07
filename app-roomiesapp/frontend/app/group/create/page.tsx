@@ -6,20 +6,22 @@ import { Step3Share } from "@/components/create-group/Step3Share";
 import StepIndicator from "@/components/create-group/StepIndicator";
 import { api } from "@/lib/api";
 import axios from "axios";
-import { ArrowLeft, Loader2, Home, Share2 } from "lucide-react"; // Importei os ícones necessários
+import { ArrowLeft, Loader2, Home, Share2 } from "lucide-react"; 
 import Link from "next/link";
 import React, { useState } from "react";
 
-// Adicione esta constante aqui:
 const STEPS = [
   { num: 1, label: "Detalhes" },
   { num: 2, label: "Convite" },
 ];
 
 export default function CreateHousePage() {
-  const [step, setStep] = useState<number>(1); // Mudei para number para ser compatível com o StepIndicator
+  const [step, setStep] = useState<number>(1); 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [generatedInviteCode, setGeneratedInviteCode] = useState<string>("");
+  
+  // AQUI ESTAVA O ERRO: Faltava essa linha abaixo!
+  const [generatedGroupId, setGeneratedGroupId] = useState<string>("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -43,15 +45,22 @@ export default function CreateHousePage() {
 
     try {
       const response = await api.post("/groups", payload);
+      
+      console.log("Dados recebidos do Backend:", response.data);
 
-      const data = response.data as { inviteCode: string; externalId: string };
+      const data = response.data;
 
-      if (!data.inviteCode) {
-        throw new Error("O servidor não retornou um código de convite válido.");
+      const code = data?.inviteCode || data?.code;
+      const id = data?.externalId || data?.id;
+
+      if (!code) {
+        throw new Error("O grupo foi criado no banco, mas o backend não gerou/retornou o código de convite (inviteCode).");
       }
 
-      setGeneratedInviteCode(data.inviteCode);
-      setStep(2); 
+      setGeneratedInviteCode(code);
+      setGeneratedGroupId(id);
+      setStep(2);
+      
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage =
@@ -135,6 +144,7 @@ export default function CreateHousePage() {
           <Step3Share
             houseName={formData.name || "Nova República"}
             inviteCode={generatedInviteCode}
+            groupId={generatedGroupId} // Passei a prop que faltava aqui também!
           />
         )}
       </section>

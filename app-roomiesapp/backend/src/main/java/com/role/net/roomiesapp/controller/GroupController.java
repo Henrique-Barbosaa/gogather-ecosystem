@@ -48,6 +48,10 @@ public class GroupController extends AbstractGroupController<Group, CreateGroupR
         if (request.maxOccupants() != null) {
             group.setMaxOccupants(request.maxOccupants());
         }
+
+        String generatedCode = java.util.UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        group.setInviteCode(generatedCode);
+
         return group;
     }
 
