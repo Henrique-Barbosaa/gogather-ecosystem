@@ -10,46 +10,23 @@ import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 
 interface ChatContainerProps {
-  /** Código de convite do grupo — identificador usado no chat/polls do backend. */
   inviteCode: string;
 }
 
 export const ChatContainer: React.FC<ChatContainerProps> = ({ inviteCode }) => {
   const { messages, setMessages, typingUsers, isConnected, sendMessage, sendTypingEvent } = useChatWebSocket(inviteCode);
+  
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [groupDetails, setGroupDetails] = useState<GroupDetails | null>(null);
+  const [prevInviteCode, setPrevInviteCode] = useState(inviteCode);
   const { user } = useAuth();
-
-  const fetchGroupDetails = useCallback(async () => {
-    try {
-      const response = await api.get<GroupDetails>(`/groups/${inviteCode}`);
-      setGroupDetails(response.data);
-    } catch (error) {
-      console.error("Erro ao buscar detalhes do grupo:", error);
-    }
-  }, [inviteCode]);
-
-  const fetchHistory = useCallback(async () => {
-    try {
-      setIsLoadingHistory(true);
-      const response = await api.get<PaginatedChatHistory>(`/groups/${inviteCode}/chat?page=0&size=50`);
-
-      const data = response.data;
-      const reversedMessages = [...data.content].reverse();
-
-      setMessages((prev) => {
-        const existingIds = new Set(prev.map(m => m.id ?? `${m.createdAt}-${m.senderName}`));
-        const newHistory = reversedMessages.filter(
-          m => !existingIds.has(m.id ?? `${m.createdAt}-${m.senderName}`)
-        );
-        return [...newHistory, ...prev];
-      });
-    } catch (error) {
-      console.error("Erro ao buscar histórico de mensagens:", error);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  }, [inviteCode, setMessages]);
+  
+  // Reseta os estados se o código de convite mudar (Evita o Cascading Render)
+  if (inviteCode !== prevInviteCode) {
+    setPrevInviteCode(inviteCode);
+    setIsLoadingHistory(true);
+    setGroupDetails(null);
+  }
 
   const handleVote = useCallback(async (optionId: number) => {
     try {
@@ -60,11 +37,43 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ inviteCode }) => {
   }, [inviteCode]);
 
   useEffect(() => {
-    if (user) {
-      fetchGroupDetails();
-      fetchHistory();
-    }
-  }, [fetchGroupDetails, fetchHistory, user]);
+    if (!user) return;
+
+    let isMounted = true;
+
+    const loadChatData = async () => {
+      try {
+        const groupResponse = await api.get<GroupDetails>(`/groups/${inviteCode}`);
+        if (isMounted) {
+          setGroupDetails(groupResponse.data);
+        }
+
+        const historyResponse = await api.get<PaginatedChatHistory>(`/groups/${inviteCode}/chat?page=0&size=50`);
+        if (isMounted) {
+          const reversedMessages = [...historyResponse.data.content].reverse();
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map(m => m.id ?? `${m.createdAt}-${m.senderName}`));
+            const newHistory = reversedMessages.filter(
+              m => !existingIds.has(m.id ?? `${m.createdAt}-${m.senderName}`)
+            );
+            return [...newHistory, ...prev];
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados do chat:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoadingHistory(false);
+        }
+      }
+    };
+
+    loadChatData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [inviteCode, user, setMessages]); 
 
   const members = groupDetails?.members ?? [];
 

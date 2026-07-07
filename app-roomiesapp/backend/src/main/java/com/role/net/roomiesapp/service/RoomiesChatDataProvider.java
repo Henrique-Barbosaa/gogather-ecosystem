@@ -11,6 +11,7 @@ import gogather.framework.chat.dto.ChatMessageDTO;
 import gogather.framework.chat.dto.SendMessageCommand;
 import gogather.framework.chat.core.ChatDataProvider;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RoomiesChatDataProvider implements ChatDataProvider {
@@ -31,6 +32,7 @@ public class RoomiesChatDataProvider implements ChatDataProvider {
     }
 
     @Override
+    @Transactional
     public ChatMessageDTO persistMessage(SendMessageCommand command) {
         Group group = groupRepository.findByInviteCode(command.roomId())
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
