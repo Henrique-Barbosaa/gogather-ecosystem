@@ -4,7 +4,12 @@ import SockJS from "sockjs-client";
 import { ChatMessage, TypingEvent, PollResponse } from "@/types/chat";
 import { useAuth } from "@/context/AuthContext";
 
-export const useChatWebSocket = (externalId: string) => {
+/**
+ * Conecta ao chat de um grupo. O identificador usado nos tópicos/destinos
+ * STOMP é o `inviteCode` do grupo (o backend mapeia @MessageMapping/@SendTo
+ * por {inviteCode}).
+ */
+export const useChatWebSocket = (inviteCode: string) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const clientRef = useRef<Client | null>(null);
@@ -13,7 +18,7 @@ export const useChatWebSocket = (externalId: string) => {
 
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-    
+
     const client = new Client({
       webSocketFactory: () => new SockJS(`${apiUrl}/ws-chat`),
       connectHeaders: {},
@@ -25,15 +30,15 @@ export const useChatWebSocket = (externalId: string) => {
       heartbeatOutgoing: 4000,
       onConnect: () => {
         setIsConnected(true);
-        
-        client.subscribe(`/topic/group/${externalId}`, (message: IMessage) => {
+
+        client.subscribe(`/topic/group/${inviteCode}`, (message: IMessage) => {
           const chatMessage: ChatMessage = JSON.parse(message.body);
           setMessages((prev) => [...prev, chatMessage]);
         });
 
-        client.subscribe(`/topic/group/${externalId}/typing`, (message: IMessage) => {
+        client.subscribe(`/topic/group/${inviteCode}/typing`, (message: IMessage) => {
           const typingEvent: TypingEvent = JSON.parse(message.body);
-          
+
           if (typingEvent.senderName === user?.displayName || typingEvent.senderName === user?.username) return;
 
           setTypingUsers((prev) => {
@@ -47,9 +52,9 @@ export const useChatWebSocket = (externalId: string) => {
           });
         });
 
-        client.subscribe(`/topic/group/${externalId}/poll-update`, (message: IMessage) => {
+        client.subscribe(`/topic/group/${inviteCode}/poll-update`, (message: IMessage) => {
           const updatedPoll: PollResponse = JSON.parse(message.body);
-          setMessages((prev) => 
+          setMessages((prev) =>
             prev.map(m => m.poll?.id === updatedPoll.id ? { ...m, poll: updatedPoll } : m)
           );
         });
@@ -70,33 +75,32 @@ export const useChatWebSocket = (externalId: string) => {
       client.deactivate();
       clientRef.current = null;
     };
-  }, [externalId, user?.displayName, user?.username]);
+  }, [inviteCode, user?.displayName, user?.username]);
 
   const sendMessage = useCallback(
     (content: string) => {
       if (clientRef.current && clientRef.current.connected && user) {
-        const requiresAiResponse = content.includes("@gogatherai");
         clientRef.current.publish({
-          destination: `/app/chat/${externalId}/send`,
-          body: JSON.stringify({ content, requiresAiResponse }),
+          destination: `/app/chat/${inviteCode}/send`,
+          body: JSON.stringify({ content }),
         });
       } else {
         console.warn("Cannot send message: WebSocket not connected or user not logged in.");
       }
     },
-    [externalId, user]
+    [inviteCode, user]
   );
 
   const sendTypingEvent = useCallback(
     (isTyping: boolean) => {
       if (clientRef.current && clientRef.current.connected && user) {
         clientRef.current.publish({
-          destination: `/app/chat/${externalId}/typing`,
+          destination: `/app/chat/${inviteCode}/typing`,
           body: JSON.stringify({ senderName: user.displayName || user.username, isTyping }),
         });
       }
     },
-    [externalId, user]
+    [inviteCode, user]
   );
 
   return {

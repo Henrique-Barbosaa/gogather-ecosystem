@@ -1,4 +1,3 @@
-import "mapbox-gl/dist/mapbox-gl.css";
 import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
@@ -12,7 +11,6 @@ export const metadata: Metadata = {
   description: "Sua república de forma descomplicada. Encontre, gerencie e compartilhe sua moradia com facilidade.",
 };
 import localFont from 'next/font/local';
-import './globals.css';
 import { AuthProvider } from "@/context/AuthContext";
 
 const jakartaSans = localFont({

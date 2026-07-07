@@ -8,13 +8,9 @@ interface MessageListProps {
   typingUsers: Set<string>;
   onVote: (optionId: number) => void;
   totalMembers: number;
-  isAdmin?: boolean;
-  groupId?: string;
-  onStopAdded?: () => void;
-  addedPlaceIds?: string[];
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, typingUsers, onVote, totalMembers, isAdmin, groupId, onStopAdded, addedPlaceIds }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, typingUsers, onVote, totalMembers }) => {
   const { user } = useAuth();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +29,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, typingUsers,
       ) : (
         messages.map((msg, index) => (
           <MessageBubble
-            key={`${msg.createdAt}-${msg.senderName}-${index}`}
+            key={msg.id ?? `${msg.createdAt}-${msg.senderName}-${index}`}
             message={msg}
             isCurrentUser={
               msg.type === "USER" &&
@@ -41,10 +37,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, typingUsers,
             }
             onVote={onVote}
             totalMembers={totalMembers}
-            isAdmin={isAdmin}
-            groupId={groupId}
-            onStopAdded={onStopAdded}
-            addedPlaceIds={addedPlaceIds}
           />
         ))
       )}

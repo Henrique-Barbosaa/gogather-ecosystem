@@ -3,20 +3,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { GroupData } from "@/app/types";
-import { useAuth } from "@/context/AuthContext";
-import { CreateExpenseDialog } from "./CreateExpenseDialog";
 import { ExpensesList } from "./ExpensesList";
+import { Receipt } from "lucide-react";
 
-export function GroupExpensesSection({ groupId }: { groupId: string }) {
-  const { user } = useAuth();
-  
+export function GroupExpensesSection({ inviteCode }: { inviteCode: string }) {
   const { data: group, isLoading } = useQuery({
-    queryKey: ['group', groupId],
+    queryKey: ['group', inviteCode],
     queryFn: async () => {
-      const res = await api.get<GroupData>(`/groups/${groupId}`);
+      const res = await api.get<GroupData>(`/groups/${inviteCode}`);
       return res.data;
     },
-    enabled: !!groupId,
+    enabled: !!inviteCode,
   });
 
   if (isLoading) {
@@ -25,16 +22,16 @@ export function GroupExpensesSection({ groupId }: { groupId: string }) {
 
   if (!group) return null;
 
-  const currentMember = group.members.find(m => m.externalId === user?.id?.toString());
-  const isAdmin = currentMember?.role === "ADMIN";
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-lg font-bold text-gray-900 shrink-0">Financeiro</h3>
-        {isAdmin && <CreateExpenseDialog group={group} />}
+        <h3 className="text-lg font-bold text-gray-900 shrink-0 flex items-center gap-2">
+          <Receipt className="w-5 h-5 text-ra-green" />
+          Financeiro
+        </h3>
       </div>
-      <ExpensesList groupId={groupId} members={group.members} />
+      {/* O módulo billing identifica o grupo pelo externalId (UUID). */}
+      <ExpensesList groupExternalId={group.externalId} />
     </div>
   );
 }

@@ -20,7 +20,6 @@ export default function CreateHousePage() {
   const [step, setStep] = useState<number>(1); // Mudei para number para ser compatível com o StepIndicator
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [generatedInviteCode, setGeneratedInviteCode] = useState<string>("");
-  const [generatedGroupId, setGeneratedGroupId] = useState<string>("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -52,7 +51,6 @@ export default function CreateHousePage() {
       }
 
       setGeneratedInviteCode(data.inviteCode);
-      setGeneratedGroupId(data.externalId);
       setStep(2); 
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -137,7 +135,6 @@ export default function CreateHousePage() {
           <Step3Share
             houseName={formData.name || "Nova República"}
             inviteCode={generatedInviteCode}
-            groupId={generatedGroupId}
           />
         )}
       </section>

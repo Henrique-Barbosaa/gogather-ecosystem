@@ -1,20 +1,29 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { GroupData } from "@/app/types";
-import { Calendar } from "lucide-react";
+import { MapPin, Users, Wallet, Copy, Check, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
-export function GroupInfoSection({ groupId }: { groupId: string }) {
+function formatCents(cents?: number | null): string | null {
+  if (cents === null || cents === undefined) return null;
+  return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+export function GroupInfoSection({ inviteCode }: { inviteCode: string }) {
+  const [copied, setCopied] = useState(false);
+
   const { data: group, isLoading } = useQuery({
-    queryKey: ['group', groupId],
+    queryKey: ['group', inviteCode],
     queryFn: async () => {
-      const res = await api.get<GroupData>(`/groups/${groupId}`);
+      const res = await api.get<GroupData>(`/groups/${inviteCode}`);
       return res.data;
     },
-    enabled: !!groupId,
+    enabled: !!inviteCode,
   });
 
   if (isLoading) {
@@ -25,8 +34,14 @@ export function GroupInfoSection({ groupId }: { groupId: string }) {
     return null;
   }
 
-  const firstStop = group.eventStops?.[0];
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  const rent = formatCents(group.monthlyRentCents);
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(group.inviteCode);
+    setCopied(true);
+    toast.success("Código copiado!");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -34,34 +49,48 @@ export function GroupInfoSection({ groupId }: { groupId: string }) {
       <p className="text-sm text-gray-600 leading-relaxed font-medium">
         {group.description || "Sem descrição disponível."}
       </p>
-      <div className="flex items-center gap-2 mt-1 text-sm text-gray-700 font-semibold">
-        <Calendar className="w-4 h-4 text-ra-green" />
-        <span>
-          {group.eventDate ? format(new Date(group.eventDate), "EEEE, d 'de' MMMM '•' HH'h'", { locale: ptBR }) : 'Data não definida'}
-        </span>
+
+      <div className="flex flex-col gap-2 mt-1">
+        {group.address && (
+          <div className="flex items-center gap-2 text-sm text-gray-700 font-semibold">
+            <MapPin className="w-4 h-4 text-ra-green shrink-0" />
+            <span>{group.address}</span>
+          </div>
+        )}
+        {rent && (
+          <div className="flex items-center gap-2 text-sm text-gray-700 font-semibold">
+            <Wallet className="w-4 h-4 text-ra-green shrink-0" />
+            <span>Aluguel: {rent}/mês</span>
+          </div>
+        )}
+        {typeof group.maxOccupants === "number" && (
+          <div className="flex items-center gap-2 text-sm text-gray-700 font-semibold">
+            <Users className="w-4 h-4 text-ra-green shrink-0" />
+            <span>Até {group.maxOccupants} moradores</span>
+          </div>
+        )}
+        {group.createdAt && (
+          <div className="flex items-center gap-2 text-sm text-gray-700 font-semibold">
+            <CalendarDays className="w-4 h-4 text-ra-green shrink-0" />
+            <span>Criada em {format(new Date(group.createdAt), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
+          </div>
+        )}
       </div>
 
-      {firstStop && mapboxToken && (
-        <div className="mt-6 flex flex-col gap-3">
-          <div className="w-full h-36 rounded-2xl overflow-hidden border border-ra-blue-dark/30 shadow-sm relative bg-gray-100 group">
-            <img
-              src={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s+cc241a(${firstStop.longitude},${firstStop.latitude})/${firstStop.longitude},${firstStop.latitude},14/400x144?access_token=${mapboxToken}`}
-              alt={`Mapa para ${firstStop.name}`}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          </div>
-          <div className="flex flex-col gap-0.5 px-1">
-            <span className="text-sm font-bold text-gray-900">
-              {`${firstStop.name}`}
-            </span>
-            {(firstStop.city || firstStop.state) && (
-              <span className="text-xs font-medium text-gray-500 italic">
-                {firstStop.city}{firstStop.city && firstStop.state ? ' / ' : ''}{firstStop.state}
-              </span>
-            )}
-          </div>
+      {/* Código de convite */}
+      <div className="mt-4 bg-white rounded-2xl border border-dashed border-ra-green/50 p-4 flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Código de Convite</span>
+          <span className="text-xl font-black tracking-[0.15em] text-ra-green truncate">{group.inviteCode}</span>
         </div>
-      )}
+        <button
+          onClick={handleCopyCode}
+          className="shrink-0 p-2 text-gray-500 hover:text-ra-green hover:bg-ra-green/10 rounded-lg transition-colors"
+          title="Copiar código"
+        >
+          {copied ? <Check className="w-5 h-5 text-ra-green" /> : <Copy className="w-5 h-5" />}
+        </button>
+      </div>
     </div>
   );
 }

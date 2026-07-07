@@ -1,65 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, ExternalLink, Home, UserPlus, Loader2 } from "lucide-react";
+import { Check, Copy, ExternalLink, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
-import { FriendData } from "@/app/types";
 
 interface StepShareProps {
   houseName: string;
   inviteCode: string;
-  groupId: string;
 }
 
-export const Step3Share = ({ houseName, inviteCode, groupId }: StepShareProps) => {
+export const Step3Share = ({ houseName, inviteCode }: StepShareProps) => {
   const router = useRouter();
-  
+
   const [copied, setCopied] = useState<boolean>(false);
-  const [friends, setFriends] = useState<FriendData[]>([]);
-  const [invitedFriends, setInvitedFriends] = useState<Record<string, 'loading' | boolean>>({});
-  const [loadingFriends, setLoadingFriends] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchFriends = async () => {
-      try {
-        const res = await api.get("/friendship");
-        const acceptedFriends = res.data.filter((f: FriendData) => f.status === 'ACCEPTED');
-        setFriends(acceptedFriends);
-      } catch (err) {
-        console.error("Erro ao buscar amigos:", err);
-      } finally {
-        setLoadingFriends(false);
-      }
-    };
-    fetchFriends();
-  }, []);
-
-  const handleInviteFriend = async (friendId: string) => {
-    try {
-      setInvitedFriends(prev => ({ ...prev, [friendId]: 'loading' }));
-      await api.post(`/groups/${groupId}/invite/${friendId}`);
-      setInvitedFriends(prev => ({ ...prev, [friendId]: true }));
-    } catch (err) {
-      console.error("Erro ao convidar amigo:", err);
-      setInvitedFriends(prev => ({ ...prev, [friendId]: false }));
-    }
-  };
-
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-
-  const inviteLink = `${apiUrl}/join/${inviteCode}`;
 
   const handleCopy = (): void => {
-    navigator.clipboard.writeText(inviteLink);
+    navigator.clipboard.writeText(inviteCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleWhatsApp = (): void => {
     const text = encodeURIComponent(
-      `🏠 Bora organizar a nossa casa "${houseName}" no RoomiesApp! Entre com o código: ${inviteCode}\n\nAcesse: ${inviteLink}`
+      `🏠 Bora organizar a nossa casa "${houseName}" no RoomiesApp! Entre com o código de convite: ${inviteCode}`
     );
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
@@ -67,7 +31,7 @@ export const Step3Share = ({ houseName, inviteCode, groupId }: StepShareProps) =
   return (
     <div className="flex w-full items-start justify-center px-6 pt-10 pb-24">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-        
+
         <div className="text-center pt-10 pb-6 px-8">
           <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-purple-50 text-[#8724df] mx-auto mb-4">
             <Home className="h-8 w-8" />
@@ -76,15 +40,17 @@ export const Step3Share = ({ houseName, inviteCode, groupId }: StepShareProps) =
         </div>
 
         <div className="px-8 pb-8 space-y-6">
-          
+
           <div className="space-y-4">
-            <p className="text-center text-sm font-medium text-gray-500">Compartilhe o código para adicionar seus colegas de quarto.</p>
-            
+            <p className="text-center text-sm font-medium text-gray-500">
+              Compartilhe o código para os seus colegas entrarem na casa.
+            </p>
+
             <div className="bg-gray-50 rounded-xl border-2 border-dashed border-[#299227] p-5 text-center space-y-1">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Código de Convite</p>
               <p className="text-3xl font-black tracking-[0.2em] text-[#299227]">{inviteCode}</p>
             </div>
-            
+
             <div className="flex gap-3">
               <Button
                 variant="outline"
@@ -92,9 +58,9 @@ export const Step3Share = ({ houseName, inviteCode, groupId }: StepShareProps) =
                 className="flex-1 h-11 rounded-xl gap-2 font-semibold transition-all hover:bg-gray-50"
               >
                 {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                {copied ? "Copiado!" : "Copiar Link"}
+                {copied ? "Copiado!" : "Copiar Código"}
               </Button>
-              
+
               <Button
                 onClick={handleWhatsApp}
                 className="flex-1 h-11 rounded-xl gap-2 font-semibold bg-[#25D366] hover:bg-[#20bd5a] text-white transition-colors"
@@ -105,56 +71,6 @@ export const Step3Share = ({ houseName, inviteCode, groupId }: StepShareProps) =
                 WhatsApp
               </Button>
             </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs font-medium text-gray-400">ou convide seus amigos da rede</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-
-          <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 max-h-60 overflow-y-auto space-y-3">
-            {loadingFriends ? (
-              <div className="flex justify-center items-center py-4">
-                <Loader2 className="h-6 w-6 animate-spin text-[#8724df]" />
-              </div>
-            ) : friends.length === 0 ? (
-              <p className="text-center text-sm text-gray-500 py-2">Você ainda não tem amigos adicionados.</p>
-            ) : (
-              friends.map(friend => (
-                <div key={friend.friendExternalId} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-900">{friend.friendDisplayName}</span>
-                    <span className="text-xs text-gray-500">@{friend.friendUsername}</span>
-                  </div>
-                  <Button 
-                    size="sm"
-                    variant={invitedFriends[friend.friendExternalId] === true ? "outline" : "default"}
-                    onClick={() => handleInviteFriend(friend.friendExternalId)}
-                    disabled={!!invitedFriends[friend.friendExternalId]}
-                    className={
-                      invitedFriends[friend.friendExternalId] === true 
-                        ? "text-green-600 border-green-200 bg-green-50"
-                        : "bg-[#8724df] hover:bg-[#6419a8] text-white"
-                    }
-                  >
-                    {invitedFriends[friend.friendExternalId] === 'loading' ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : invitedFriends[friend.friendExternalId] === true ? (
-                      <>
-                        <Check className="h-4 w-4 mr-1" />
-                        Convidado
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="h-4 w-4 mr-1" />
-                        Convidar
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ))
-            )}
           </div>
 
           <div className="flex items-center gap-4">

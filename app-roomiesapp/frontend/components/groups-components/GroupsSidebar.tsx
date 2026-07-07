@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -18,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -30,8 +28,8 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
 interface GroupsSidebarProps {
-  selectedGroupId?: string | null;
-  onSelectGroup?: (id: string) => void;
+  selectedInviteCode?: string | null;
+  onSelectGroup?: (inviteCode: string) => void;
 }
 
 const formSchema = z.object({
@@ -40,7 +38,7 @@ const formSchema = z.object({
     .length(8, { error: "O código de convite deve ter 8 caracteres" })
 });
 
-export function GroupsSidebar({ selectedGroupId, onSelectGroup }: GroupsSidebarProps) {
+export function GroupsSidebar({ selectedInviteCode, onSelectGroup }: GroupsSidebarProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -56,14 +54,14 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup }: GroupsSidebarP
       await api.post(`/groups/join/${inviteCode}`);
     },
     onSuccess: () => {
-      toast.success("Você entrou no rolê com sucesso!");
+      toast.success("Você entrou na casa com sucesso!");
       queryClient.invalidateQueries({ queryKey: ['groups-list'] });
       setIsDialogOpen(false);
       form.reset();
     },
     onError: (error) => {
       const backendMessage = error.response?.data?.message;
-      toast.error(backendMessage || "Erro ao entrar no rolê.");
+      toast.error(backendMessage || "Erro ao entrar na casa.");
     }
   });
 
@@ -96,7 +94,7 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup }: GroupsSidebarP
   return (
     <aside className="h-full w-full bg-ra-blue-extralight flex flex-col p-4 border-r border-gray-100">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="font-bold text-xl text-gray-900">Meus Rolês</h1>
+        <h1 className="font-bold text-xl text-gray-900">Minhas Casas</h1>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) {
@@ -111,13 +109,13 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup }: GroupsSidebarP
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Entrar em um Rolê</DialogTitle>
+              <DialogTitle>Entrar em uma Casa</DialogTitle>
             </DialogHeader>
             <div>
               <form id="form-group" onSubmit={form.handleSubmit(onSubmit)}>
                 {joinGroupMutation.isError && (
                   <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 animate-in fade-in slide-in-from-top-1">
-                    {(joinGroupMutation.error)?.response?.data?.message || "Erro ao entrar no rolê."}
+                    {(joinGroupMutation.error)?.response?.data?.message || "Erro ao entrar na casa."}
                   </div>
                 )}
                 <FieldGroup>
@@ -164,7 +162,7 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup }: GroupsSidebarP
         <Search className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${searchQuery ? 'text-ra-green' : 'text-gray-400'}`} />
         <input
           type="text"
-          placeholder="Buscar rolê..."
+          placeholder="Buscar casa..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ra-green/20 focus:border-ra-green transition-all"
@@ -185,22 +183,21 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup }: GroupsSidebarP
             ))}
           </div>
         ) : filteredGroups && filteredGroups.length > 0 ? (
-          filteredGroups.map((group, index) => {
-            const eventDate = new Date(group.eventDate);
-            const day = String(eventDate.getDate()).padStart(2, '0');
-            const month = String(eventDate.getMonth() + 1).padStart(2, '0');
-            const hour = String(eventDate.getHours()).padStart(2, '0');
-            const minute = String(eventDate.getMinutes()).padStart(2, '0');
-
-            const isSelected = selectedGroupId === group.externalId;
+          filteredGroups.map((group) => {
+            const isSelected = selectedInviteCode === group.inviteCode;
             const initials = group.name.substring(0, 1).toUpperCase();
-            const colorIndex = group.externalId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % avatarColors.length;
+            const colorIndex = group.inviteCode.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % avatarColors.length;
             const colorClass = avatarColors[colorIndex];
+
+            // Subtítulo: número de moradores (se o backend informar) ou endereço.
+            const subtitle = typeof group.memberAmount === "number"
+              ? `${group.memberAmount} ${group.memberAmount === 1 ? 'morador' : 'moradores'}`
+              : group.address || "República";
 
             return (
               <div
-                key={group.externalId}
-                onClick={() => onSelectGroup?.(group.externalId)}
+                key={group.inviteCode}
+                onClick={() => onSelectGroup?.(group.inviteCode)}
                 className={`
                   relative flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all duration-200
                   ${isSelected ? 'bg-white shadow-sm ring-1 ring-gray-100' : 'hover:bg-white/50'}
@@ -219,9 +216,7 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup }: GroupsSidebarP
                     {group.name}
                   </h2>
                   <p className="text-xs text-gray-500 truncate mt-0.5">
-                    {`${day}/${month} às ${hour}:${minute}`}
-                    <span className="mx-1.5 opacity-40">•</span>
-                    {`${group.memberAmount} ${group.memberAmount > 1 ? 'participantes' : 'participante'}`}
+                    {subtitle}
                   </p>
                 </div>
               </div>
@@ -229,7 +224,7 @@ export function GroupsSidebar({ selectedGroupId, onSelectGroup }: GroupsSidebarP
           })
         ) : (
           <div className="text-center text-gray-400 text-sm py-4">
-            Nenhum rolê encontrado.
+            Nenhuma casa encontrada.
           </div>
         )}
       </div>

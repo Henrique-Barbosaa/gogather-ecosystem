@@ -11,12 +11,18 @@ export interface PollResponse {
   options: PollOptionResponse[];
 }
 
+/**
+ * Mensagem de chat. Alinhada ao ChatMessageResponse do backend roomiesapp:
+ * id, senderId, senderName, content, type (USER | SYSTEM | POLL), createdAt, poll.
+ */
 export interface ChatMessage {
-  content: string;
+  id?: string;
+  senderId?: string | null;
   senderName: string;
-  type: "USER" | "AI";
+  content: string;
+  type: "USER" | "SYSTEM" | "POLL";
   createdAt: string;
-  poll?: PollResponse;
+  poll?: PollResponse | null;
 }
 
 export interface TypingEvent {
@@ -24,34 +30,30 @@ export interface TypingEvent {
   isTyping: boolean;
 }
 
-export interface EventStopDTO {
-  name: string;
-  latitude: number;
-  longitude: number;
-  category: string;
-  stopOrder: number;
-  city: string;
-  state: string;
-  placeId?: string;
+export interface GroupMemberDTO {
+  id: string;
+  username: string;
+  name?: string;
+  role?: string;
+  email?: string;
 }
 
+/**
+ * Detalhes do grupo usados no cabeçalho do chat.
+ * Alinhado ao GroupResponse do roomiesapp (sem eventDate/eventStops).
+ * `members` é opcional pois o GroupResponse atual não retorna a lista.
+ */
 export interface GroupDetails {
+  id: number;
   externalId: string;
   name: string;
   description: string;
   inviteCode: string;
+  address?: string | null;
+  monthlyRentCents?: number | null;
+  maxOccupants?: number;
   createdAt: string;
-  eventDate: string;
-  members: GroupMemberDTO[];
-  eventStops: EventStopDTO[];
-}
-
-export interface GroupMemberDTO {
-  externalId: string;
-  username: string;
-  displayName: string;
-  role: string;
-  email: string;
+  members?: GroupMemberDTO[];
 }
 
 export interface Sort {

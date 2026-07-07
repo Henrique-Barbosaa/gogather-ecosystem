@@ -8,86 +8,57 @@ export interface StandardError {
   path: string;
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Grupos (Repúblicas / Casas)                                               */
+/*  Alinhado ao GroupResponse do backend roomiesapp:                          */
+/*  id, externalId, name, description, inviteCode, address,                   */
+/*  monthlyRentCents, maxOccupants, createdAt                                 */
+/* -------------------------------------------------------------------------- */
+
+export type GroupRole = "ADMIN" | "MEMBER";
+
+/**
+ * Morador de uma casa. Alinhado ao UserResponse do backend
+ * (id numérico como string, username, name) + o papel no grupo.
+ * `members` só vem populado se o backend incluir a lista no GroupResponse.
+ */
+export interface RoomieMember {
+  id: string;
+  username: string;
+  name?: string;
+  email?: string;
+  role?: GroupRole;
+}
+
 export interface GroupData {
-  externalId: string,
-  name: string,
-  description: string,
-  inviteCode: string,
-  createdAt: Date,
-  eventDate: Date,
-  members: {
-    externalId: string,
-    displayName: string,
-    username: string,
-    role: string,
-    email: string
-  }[],
-  eventStops?: {
-    name: string,
-    latitude: number,
-    longitude: number,
-    category: string,
-    stopOrder: number,
-    city?: string,
-    state?: string
-  }[]
+  id: number;
+  externalId: string;
+  name: string;
+  description: string;
+  inviteCode: string;
+  address?: string | null;
+  monthlyRentCents?: number | null;
+  maxOccupants?: number;
+  createdAt: string;
+  members?: RoomieMember[];
 }
 
 export interface GroupSimpleData {
-  externalId: string,
-  name: string,
-  description: string,
-  inviteCode: string,
-  eventDate: Date,
-  memberAmount: number
-}
-
-export interface EventFormData {
+  id: number;
+  externalId: string;
   name: string;
-  date: string;
   description: string;
+  inviteCode: string;
+  address?: string | null;
+  monthlyRentCents?: number | null;
+  maxOccupants?: number;
+  createdAt: string;
+  memberAmount?: number;
 }
 
-export interface EventStop {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  category?: string;
-  time?: string;
-}
-
-export interface PlaceSuggestion {
-  placePrediction: {
-    placeId: string;
-    text: {
-      text: string;
-    };
-    structuredFormat: {
-      mainText: {
-        text: string;
-      };
-      secondaryText?: {
-        text: string;
-      };
-    };
-    types?: string[];
-  };
-}
-
-export interface PlaceDetails {
-  id: string;
-  displayName: {
-    text: string;
-  };
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-  primaryTypeDisplayName?: {
-    text: string;
-  };
-}
+/* -------------------------------------------------------------------------- */
+/*  Amigos (mantido para a página de amigos — depende de backend próprio)     */
+/* -------------------------------------------------------------------------- */
 
 export interface FriendData {
   fsExternalId: string;
@@ -115,29 +86,64 @@ export interface UserData {
   birthDate: Date;
 }
 
-export interface ExpenseContribution {
-  expenseContributionExternalId: string;
-  value: number;
-  payerExternalId: string;
-  parentExpenseExternalId: string;
+/* -------------------------------------------------------------------------- */
+/*  Financeiro (módulo billing do roomiesapp)                                 */
+/*  Alinhado a BillResponse / DebtResponse / PixCodeResponse                  */
+/* -------------------------------------------------------------------------- */
+
+export type BillType = "NORMAL" | "RECURRING";
+
+export type RecurrenceInterval = "NONE" | "MONTHLY" | "ANNUAL" | "CUSTOM";
+
+export type DebtStatus =
+  | "PENDING"
+  | "AWAITING_CONFIRMATION"
+  | "PAID"
+  | "CANCELLED";
+
+export interface BillUser {
+  id: string;
+  username: string;
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
 }
 
-export interface ExpenseDistribution {
-  expenseDistributionExternalId: string;
-  value: number;
-  status: string;
-  debtorExternalId: string;
-  creditorExternalId: string;
-  parentExpenseExternalId: string;
+export interface BillResponse {
+  externalId: string;
+  groupId: string;
+  title: string;
+  description?: string | null;
+  totalCents: number;
+  billType: BillType;
+  recurrenceInterval?: RecurrenceInterval | null;
+  customIntervalDays?: number | null;
+  dueDate?: string | null;
+  contributor?: BillUser | null;
+  participants: BillUser[];
 }
 
-export interface ExpenseData {
-  expenseExternalId: string;
-  description: string;
-  totalValue: number;
-  contributions: ExpenseContribution[];
-  distributions: ExpenseDistribution[];
+export interface DebtResponse {
+  externalId: string;
+  billId: string;
+  debtor?: BillUser | null;
+  creditor?: BillUser | null;
+  amountInCents: number;
+  status: DebtStatus;
+  pixCopiaECola?: string | null;
 }
+
+export interface PixCodeResponse {
+  debtId: string;
+  pixCopiaECola: string;
+  recipientName?: string;
+  recipientCity?: string;
+  amountInCents: number;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Household (tarefas, contas de casa, avisos)                               */
+/* -------------------------------------------------------------------------- */
 
 export interface HouseBill {
   id: string;
@@ -146,7 +152,6 @@ export interface HouseBill {
   dueDate: string;
   billType: 'RENT' | 'ELECTRICITY' | 'WATER' | 'INTERNET' | 'OTHER';
   status: 'PENDING' | 'PAID';
-  expenseDistributions?: ExpenseDistribution[];
 }
 
 export interface Chore {
