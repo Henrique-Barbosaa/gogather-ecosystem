@@ -28,7 +28,6 @@ function StatusBadge({ status }: { status: DebtStatus }) {
   return <span className={`text-xs font-medium px-2 py-0.5 rounded-full w-fit ${cls}`}>{label}</span>;
 }
 
-/** Card de uma conta da casa, com as dívidas que envolvem o usuário logado. */
 function BillCard({ bill }: { bill: BillResponse }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();

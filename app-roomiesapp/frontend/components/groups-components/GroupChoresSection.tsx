@@ -12,8 +12,6 @@ export function GroupChoresSection({ inviteCode }: { inviteCode: string }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  // 1. Descobre o grupo (e o id numérico dele) a partir do inviteCode,
-  //    igual GroupInfoSection/GroupExpensesSection já fazem.
   const { data: group } = useQuery({
     queryKey: ["group", inviteCode],
     queryFn: async () => {
@@ -25,8 +23,6 @@ export function GroupChoresSection({ inviteCode }: { inviteCode: string }) {
 
   const groupId = group?.id;
 
-  // 2. Busca as tarefas. useQuery já cuida de loading/erro sem useEffect manual
-  //    (é isso que elimina o aviso "setState synchronously within an effect").
   const { data: chores, isLoading } = useQuery({
     queryKey: ["group-chores", groupId],
     queryFn: async () => {
@@ -36,7 +32,6 @@ export function GroupChoresSection({ inviteCode }: { inviteCode: string }) {
     enabled: !!groupId,
   });
 
-  // 3. Alterna concluída/pendente.
   const toggleChoreMutation = useMutation({
     mutationFn: async (choreId: number) => {
       await api.put(`/api/households/${groupId}/chores/${choreId}/complete`);

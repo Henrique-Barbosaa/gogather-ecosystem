@@ -37,7 +37,7 @@ export default function Navbar() {
             <HeaderButton href="/login" variant="dark">
               Entrar
             </HeaderButton>
-            <HeaderButton href="/register" variant="beige">	
+            <HeaderButton href="/register" variant="blue">	
               Cadastre-se
             </HeaderButton>
           </div>		

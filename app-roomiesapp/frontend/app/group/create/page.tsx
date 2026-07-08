@@ -20,7 +20,6 @@ export default function CreateHousePage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [generatedInviteCode, setGeneratedInviteCode] = useState<string>("");
   
-  // AQUI ESTAVA O ERRO: Faltava essa linha abaixo!
   const [generatedGroupId, setGeneratedGroupId] = useState<string>("");
 
   const [formData, setFormData] = useState({
@@ -144,7 +143,7 @@ export default function CreateHousePage() {
           <Step3Share
             houseName={formData.name || "Nova República"}
             inviteCode={generatedInviteCode}
-            groupId={generatedGroupId} // Passei a prop que faltava aqui também!
+            groupId={generatedGroupId}
           />
         )}
       </section>

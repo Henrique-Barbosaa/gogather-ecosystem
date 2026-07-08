@@ -21,7 +21,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ inviteCode }) => {
   const [prevInviteCode, setPrevInviteCode] = useState(inviteCode);
   const { user } = useAuth();
   
-  // Reseta os estados se o código de convite mudar (Evita o Cascading Render)
   if (inviteCode !== prevInviteCode) {
     setPrevInviteCode(inviteCode);
     setIsLoadingHistory(true);

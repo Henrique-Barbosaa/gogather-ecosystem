@@ -6,8 +6,7 @@ import { GroupsChat } from "@/components/groups-components/GroupsChat";
 import { GroupsDetails } from "@/components/groups-components/GroupsDetails";
 
 export default function GroupsPage() {
-  // Guardamos o inviteCode do grupo selecionado — é o identificador usado pelo
-  // chat, enquetes e detalhes no backend do roomiesapp.
+
   const [selectedInviteCode, setSelectedInviteCode] = useState<string | null>(null);
 
   return (

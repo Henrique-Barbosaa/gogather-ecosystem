@@ -9,10 +9,12 @@ import { InfoCards } from '@/components/area-components/InfoCards';
 import { ActionCard } from '@/components/area-components/ActionCard';
 import { Empty } from '@/components/area-components/Empty';
 import { api } from '@/lib/api';
+import { Chore, DebtResponse } from '@/app/types';
 import Link from 'next/link';
 
-// Atualize esta tipagem no seu arquivo types/chat.ts depois
 interface HouseDetails {
+  id: number;
+  externalId: string;
   inviteCode: string;
   name: string;
   description: string;
@@ -29,18 +31,27 @@ export default function DashboardHome() {
     async function fetchDashboardData() {
       try {
         setIsLoading(true);
-        // Busca as casas que o usuário faz parte (usando a mesma rota herdada do framework)
         const groupsRes = await api.get<HouseDetails[]>('/groups');
-        setHouses(groupsRes.data);
+        const houses = groupsRes.data;
+        setHouses(houses);
 
-        // AFAZER: Quando os controllers de Chore e Bill estiverem prontos no back,
-        // você pode descomentar e buscar as pendências reais do usuário aqui!
-        // const [choresRes, billsRes] = await Promise.all([
-        //   api.get('/chores/pending'),
-        //   api.get('/bills/pending')
-        // ]);
-        setChoresCount(0); // Mock temporário
-        setBillsCount(0);  // Mock temporário
+        const choresPromise = Promise.all(
+          houses.map((house) =>
+            api
+              .get<Chore[]>(`/api/households/${house.id}/chores`)
+              .then((res) => res.data.filter((chore) => !chore.completed).length)
+              .catch(() => 0)
+          )
+        ).then((counts) => counts.reduce((sum, count) => sum + count, 0));
+
+        const billsPromise = api
+          .get<DebtResponse[]>('/billing/debts/my')
+          .then((res) => res.data.filter((debt) => debt.status === 'PENDING').length)
+          .catch(() => 0);
+
+        const [pendingChores, pendingBills] = await Promise.all([choresPromise, billsPromise]);
+        setChoresCount(pendingChores);
+        setBillsCount(pendingBills);
 
       } catch (error) {
         console.error("Erro ao carregar dados do dashboard:", error);
@@ -111,7 +122,6 @@ export default function DashboardHome() {
                     </div>
                   </div>
 
-                  {/* Substituímos o Mapa por um Banner com Gradiente e Ícone */}
                   <div className="w-full md:w-[35%] min-h-[160px] bg-roomies-gradient relative border-t md:border-t-0 md:border-l overflow-hidden flex items-center justify-center">
                     <Home className="w-20 h-20 text-white opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-500" />
                   </div>

@@ -19,7 +19,6 @@ export function Step1Info({
   handleInputChange,
   onNext,
 }: Step1InfoProps) {
-  // Validação agora só exige o nome da casa
   const isValid = formData.name.trim() !== "";
 
   return (

@@ -47,7 +47,6 @@ export function GroupExpensesSection({ inviteCode }: { inviteCode: string }) {
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ['group-bills', group.externalId] })}
         />
       </div>
-      {/* O módulo billing identifica o grupo pelo externalId (UUID). */}
       <ExpensesList groupExternalId={group.externalId} />
     </div>
   );

@@ -15,13 +15,12 @@ const billSchema = z.object({
   title: z.string().min(1, "O título é obrigatório"),
   amount: z.number().min(0.01, "O valor deve ser maior que zero"),
   dueDate: z.string().min(1, "A data de vencimento é obrigatória"),
-  splitAmongAll: z.boolean().default(true),
+  splitAmongAll: z.boolean(),
 });
 
 type BillFormValues = z.infer<typeof billSchema>;
 
 interface CreateExpenseDialogProps {
-  /** externalId (UUID) do grupo — o mesmo usado em GET/POST /billing/groups/{groupExternalId}/bills */
   groupExternalId: string;
   members: GroupMemberResponse[];
   onSuccess?: () => void;
@@ -50,7 +49,6 @@ export function CreateExpenseDialog({ groupExternalId, members, onSuccess }: Cre
         billType: "NORMAL",
         recurrenceInterval: "NONE",
         dueDate: data.dueDate,
-        // O backend espera os externalId (UUID) dos membros, não o id numérico.
         participantIds: data.splitAmongAll ? members.map((m) => m.externalId) : [],
       };
 
@@ -63,9 +61,10 @@ export function CreateExpenseDialog({ groupExternalId, members, onSuccess }: Cre
       form.reset();
       if (onSuccess) onSuccess();
     },
-    onError: (error) => {
-      console.error("Erro ao criar conta:", error);
-      toast.error("Não foi possível registrar a conta.");
+    onError: (error: unknown) => {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data
+        ?.message;
+      toast.error(message || "Não foi possível registrar a conta.");
     },
   });
 

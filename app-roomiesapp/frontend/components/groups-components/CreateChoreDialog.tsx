@@ -36,9 +36,10 @@ export const CreateChoreDialog = ({ isOpen, onClose, groupId, onSuccess }: Creat
       setDescription("");
       setDueDate("");
     },
-    onError: (error) => {
-      console.error("Erro ao criar tarefa:", error);
-      toast.error("Erro ao criar tarefa.");
+    onError: (error: unknown) => {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data
+        ?.message;
+      toast.error(message || "Erro ao criar tarefa.");
     },
   });
 
