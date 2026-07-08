@@ -43,6 +43,16 @@ export interface GroupData {
   members?: RoomieMember[];
 }
 
+/**
+ * Alinhado ao novo GroupMemberResponse do backend (GET /groups/{inviteCode}/members).
+ */
+export interface GroupMemberResponse {
+  id: number;
+  externalId: string;
+  username: string;
+  displayName: string;
+}
+
 export interface GroupSimpleData {
   id: number;
   externalId: string;
@@ -155,15 +165,13 @@ export interface HouseBill {
 }
 
 export interface Chore {
-  id: string;
+  id: number;
   title: string;
-  assignedTo?: {
-    externalId: string;
-    displayName: string;
-  };
-  dueDate: string;
-  isCompleted: boolean;
-  points: number;
+  description: string;
+  completed: boolean;
+  creatorUsername?: string | null;
+  assigneeUsername?: string | null;
+  dueDate?: string | null;
 }
 
 export interface HouseNotice {

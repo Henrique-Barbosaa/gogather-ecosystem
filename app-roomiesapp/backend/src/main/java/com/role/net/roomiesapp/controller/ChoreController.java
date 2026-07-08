@@ -1,11 +1,15 @@
 package com.role.net.roomiesapp.controller;
 
 import com.role.net.roomiesapp.dto.chore.ChoreResponse;
+import com.role.net.roomiesapp.dto.chore.CreateChoreRequest;
+import com.role.net.roomiesapp.entity.Group;
 import com.role.net.roomiesapp.entity.User;
 import com.role.net.roomiesapp.exception.ResourceNotFoundException;
 import com.role.net.roomiesapp.repository.RoomiesGroupRepository;
 import com.role.net.roomiesapp.repository.UserRepository;
 import com.role.net.roomiesapp.service.ChoreService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +36,20 @@ public class ChoreController {
         }
     }
 
+    @PostMapping
+    public ResponseEntity<ChoreResponse> createChore(
+            @PathVariable Long groupId,
+            @Valid @RequestBody CreateChoreRequest request,
+            @AuthenticationPrincipal User loggedUser) {
+        validateMembership(groupId, loggedUser);
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Casa não encontrada."));
+        ChoreResponse response = ChoreResponse.from(
+                choreService.createChore(group, loggedUser, request.title(), request.description(), request.dueDate())
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @GetMapping
     public ResponseEntity<List<ChoreResponse>> getChores(
             @PathVariable Long groupId,
@@ -52,7 +70,7 @@ public class ChoreController {
         validateMembership(groupId, loggedUser);
         User assignee = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
-        
+
         // Ensure assignee is in the group
         validateMembership(groupId, assignee);
 

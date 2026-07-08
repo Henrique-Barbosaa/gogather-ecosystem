@@ -1,5 +1,6 @@
 import { GroupInfoSection } from "./GroupInfoSection";
 import { GroupExpensesSection } from "./GroupExpensesSection";
+import { GroupChoresSection } from "./GroupChoresSection";
 
 export function GroupsDetails({ inviteCode }: { inviteCode: string }) {
   return (
@@ -8,6 +9,8 @@ export function GroupsDetails({ inviteCode }: { inviteCode: string }) {
         <GroupInfoSection inviteCode={inviteCode} />
         <hr className="border-gray-100" />
         <GroupExpensesSection inviteCode={inviteCode} />
+        <hr className="border-gray-100" />
+        <GroupChoresSection inviteCode={inviteCode} />
       </div>
     </aside>
   );

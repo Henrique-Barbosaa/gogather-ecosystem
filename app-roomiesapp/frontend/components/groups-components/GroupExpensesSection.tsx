@@ -1,16 +1,28 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { GroupData } from "@/app/types";
+import { GroupData, GroupMemberResponse } from "@/app/types";
 import { ExpensesList } from "./ExpensesList";
+import { CreateExpenseDialog } from "./CreateExpenseDialog";
 import { Receipt } from "lucide-react";
 
 export function GroupExpensesSection({ inviteCode }: { inviteCode: string }) {
+  const queryClient = useQueryClient();
+
   const { data: group, isLoading } = useQuery({
     queryKey: ['group', inviteCode],
     queryFn: async () => {
       const res = await api.get<GroupData>(`/groups/${inviteCode}`);
+      return res.data;
+    },
+    enabled: !!inviteCode,
+  });
+
+  const { data: members } = useQuery({
+    queryKey: ['group-members', inviteCode],
+    queryFn: async () => {
+      const res = await api.get<GroupMemberResponse[]>(`/groups/${inviteCode}/members`);
       return res.data;
     },
     enabled: !!inviteCode,
@@ -29,6 +41,11 @@ export function GroupExpensesSection({ inviteCode }: { inviteCode: string }) {
           <Receipt className="w-5 h-5 text-ra-green" />
           Financeiro
         </h3>
+        <CreateExpenseDialog
+          groupExternalId={group.externalId}
+          members={members ?? []}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['group-bills', group.externalId] })}
+        />
       </div>
       {/* O módulo billing identifica o grupo pelo externalId (UUID). */}
       <ExpensesList groupExternalId={group.externalId} />
