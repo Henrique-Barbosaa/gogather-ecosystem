@@ -3,6 +3,7 @@ package com.role.net.roomiesapp.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "chores")
@@ -21,6 +22,9 @@ public class Chore extends BaseEntity {
     @JoinColumn(name = "creator_id", nullable = false)
     private User creator;
 
+    @Column(length = 150)
+    private String title;
+
     @Column(nullable = false, length = 500)
     private String description;
 
@@ -31,6 +35,8 @@ public class Chore extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
     private User assignee;
+
+    private LocalDate dueDate;
 
     @Column(name = "created_at_chore") // Just to avoid conflict if BaseEntity already maps it, but actually we can just inherit it!
     private Instant createdAtChore;

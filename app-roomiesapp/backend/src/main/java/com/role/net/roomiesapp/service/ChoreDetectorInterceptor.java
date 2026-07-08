@@ -43,12 +43,14 @@ public class ChoreDetectorInterceptor implements ChatMessageInterceptor {
             try {
                 Group group = groupRepository.findByInviteCode(savedMessage.roomId()).orElseThrow();
                 User creator = userRepository.findById(Long.parseLong(savedMessage.senderId())).orElseThrow();
-                String description = (String) metadata.get("choreDescription");
+                String choreText = (String) metadata.get("choreDescription");
 
-                choreService.createChore(group, creator, description);
+                // Tarefas criadas via chat não têm descrição/data separadas: usamos o texto
+                // do comando como título e deixamos os outros campos em branco.
+                choreService.createChore(group, creator, choreText, null, null);
 
                 System.out.println("====== PLUGIN DE TAREFAS DISPARADO ======");
-                System.out.println("Nova tarefa criada para a casa: " + description);
+                System.out.println("Nova tarefa criada para a casa: " + choreText);
                 System.out.println("Por usuário: " + creator.getUsername());
                 System.out.println("=========================================");
             } catch (Exception e) {

@@ -1,9 +1,9 @@
 package com.role.net.roomiesapp.interceptor;
 
 import com.role.net.roomiesapp.dto.chat.PollRequest;
-import com.role.net.roomiesapp.entity.Group;
 import com.role.net.roomiesapp.entity.User;
 import com.role.net.roomiesapp.service.PollService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -20,7 +20,7 @@ public class PollDetectorInterceptor implements ChannelInterceptor {
 
     private final PollService pollService;
 
-    public PollDetectorInterceptor(PollService pollService) {
+    public PollDetectorInterceptor(@Lazy PollService pollService) {
         this.pollService = pollService;
     }
 

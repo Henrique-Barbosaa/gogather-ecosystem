@@ -51,7 +51,7 @@ public class ChatWebSocketController {
 
         ChatMessageDTO savedDto = chatOrchestrator.processMessage(command);
 
-        ChatMessage savedMessage = chatMessageRepository.findById(Long.parseLong(savedDto.messageId()))
+        ChatMessage savedMessage = chatMessageRepository.findByIdWithSender(Long.parseLong(savedDto.messageId()))
                 .orElseThrow(() -> new IllegalArgumentException("Message not found after save"));
 
         return ChatMessageResponse.from(savedMessage);

@@ -1,6 +1,7 @@
 package com.role.net.roomiesapp.controller;
 
 import com.role.net.roomiesapp.dto.group.CreateGroupRequest;
+import com.role.net.roomiesapp.dto.group.GroupMemberResponse;
 import com.role.net.roomiesapp.dto.group.GroupResponse;
 import com.role.net.roomiesapp.entity.Group;
 import com.role.net.roomiesapp.entity.User;
@@ -48,6 +49,10 @@ public class GroupController extends AbstractGroupController<Group, CreateGroupR
         if (request.maxOccupants() != null) {
             group.setMaxOccupants(request.maxOccupants());
         }
+
+        String generatedCode = java.util.UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        group.setInviteCode(generatedCode);
+
         return group;
     }
 
@@ -76,5 +81,22 @@ public class GroupController extends AbstractGroupController<Group, CreateGroupR
         Group group = groupRepository.findByInviteCode(inviteCode)
             .orElseThrow(() -> new ResourceNotFoundException("Grupo não encontrado: " + inviteCode));
         return ResponseEntity.ok(GroupResponse.from(group));
+    }
+
+    @GetMapping("/{inviteCode}/members")
+    public ResponseEntity<List<GroupMemberResponse>> getGroupMembers(
+        @PathVariable String inviteCode,
+        @AuthenticationPrincipal User user
+    ) {
+        if (!groupRepository.isGroupMemberByInviteCode(inviteCode, user.getId())) {
+            throw new ResourceNotFoundException("Grupo não encontrado ou você não é membro.");
+        }
+        Group group = groupRepository.findByInviteCode(inviteCode)
+            .orElseThrow(() -> new ResourceNotFoundException("Grupo não encontrado: " + inviteCode));
+
+        List<GroupMemberResponse> members = group.getMembers().stream()
+            .map(groupMember -> GroupMemberResponse.from((User) groupMember.getUser()))
+            .toList();
+        return ResponseEntity.ok(members);
     }
 }

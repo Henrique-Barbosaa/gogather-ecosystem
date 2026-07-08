@@ -7,6 +7,7 @@ import com.role.net.roomiesapp.repository.ChoreRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -19,11 +20,13 @@ public class ChoreService {
     }
 
     @Transactional
-    public Chore createChore(Group group, User creator, String description) {
+    public Chore createChore(Group group, User creator, String title, String description, LocalDate dueDate) {
         Chore chore = Chore.builder()
                 .group(group)
                 .creator(creator)
-                .description(description)
+                .title(title)
+                .description(description != null ? description : "")
+                .dueDate(dueDate)
                 .completed(false)
                 .build();
         return choreRepository.save(chore);
@@ -42,11 +45,12 @@ public class ChoreService {
         return choreRepository.save(chore);
     }
 
+    /** Alterna o status da tarefa (concluída <-> pendente). */
     @Transactional
     public Chore completeChore(Long choreId) {
         Chore chore = choreRepository.findById(choreId)
                 .orElseThrow(() -> new IllegalArgumentException("Tarefa não encontrada."));
-        chore.setCompleted(true);
+        chore.setCompleted(!chore.isCompleted());
         return choreRepository.save(chore);
     }
 }
